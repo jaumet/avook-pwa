@@ -1,0 +1,79 @@
+version: '3.8'
+
+# Create .env files from the .env.example files in `frontend`, `backend`, and `infra` directories
+# before running `docker compose up`.
+# e.g. cp frontend/.env.example frontend/.env
+
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    env_file:
+      - ../frontend/.env
+    depends_on:
+      - api
+    networks:
+      - avook_net
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../backend/.env
+    depends_on:
+      - db
+      - object-store
+    networks:
+      - avook_net
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=avook
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - avook_net
+
+  object-store:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - avook_net
+
+  proxy:
+    image: nginx:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    env_file:
+      - ./.env
+    depends_on:
+      - object-store
+    networks:
+      - avook_net
+
+networks:
+  avook_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
