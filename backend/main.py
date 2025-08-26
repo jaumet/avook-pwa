@@ -1,4 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from . import database
 
 app = FastAPI()
 
@@ -9,3 +12,13 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/health/db")
+def db_health_check(db: Session = Depends(database.get_db)):
+    try:
+        # to check database connection, we can execute a simple query
+        db.execute(text('SELECT 1'))
+        return {"status": "ok"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
