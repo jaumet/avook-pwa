@@ -18,26 +18,26 @@
 - [ ] **proxy** (8080) — NGINX per HLS/CORS/Range.
 
 ## 🌱 Fase A — Bootstrap del monorepo
-- [ ] Crear carpetes i fitxers base (README, CHECKLIST, docs).
-- [ ] `.env.example` per `frontend`, `backend`, `infra`.
-- [ ] Docker Compose amb serveis (sense codi d’app encara).
-- [ ] Health checks bàsics per serveis.
+- [x] Crear carpetes i fitxers base (README, CHECKLIST, docs).
+- [x] `.env.example` per `frontend`, `backend`, `infra`.
+- [x] Docker Compose amb serveis (sense codi d’app encara).
+- [x] Health checks bàsics per serveis.
 **DoD:** `docker compose up` aixeca tots els contenidors i responen ping/health.
 
 ## 🗃️ Fase B — Model de dades (PostgreSQL)
-- [ ] `admin_users`: id, email, password_hash, role (`owner|editor`), timestamps.
-- [ ] `titles`: id, slug, title, author, language, duration_sec, cover_path, status.
-- [ ] `products`: id, title_id FK, sku/ean, price_cents, notes.
-- [ ] `batches`: id, product_id FK, name, size, printed_at, notes.
-- [ ] `qr_codes`: id, product_id FK, qr (únic), owner_pin_hash, batch_id FK, state (`new|active|blocked`), created_at.
-- [ ] `device_bindings`: qr FK, device_id, created_at, last_seen_at, active.
-- [ ] `listening_progress`: qr FK, device_id, position_sec, chapter_id?, updated_at.
-- [ ] Índexos clau i migracions inicials.
+- [x] `admin_users`: id, email, password_hash, role (`owner|editor`), timestamps.
+- [x] `titles`: id, slug, title, author, language, duration_sec, cover_path, status.
+- [x] `products`: id, title_id FK, sku/ean, price_cents, notes.
+- [x] `batches`: id, product_id FK, name, size, printed_at, notes.
+- [x] `qr_codes`: id, product_id FK, qr (únic), owner_pin_hash, batch_id FK, state (`new|active|blocked`), created_at.
+- [x] `device_bindings`: qr FK, device_id, created_at, last_seen_at, active.
+- [x] `listening_progress`: qr FK, device_id, position_sec, chapter_id?, updated_at.
+- [x] Índexos clau i migracions inicials.
 **DoD:** migracions aplicades; `db` llesta per API.
 
 ## 🌐 Fase C — API pública (sense registre d’usuari final)
-- [ ] `GET /abook/{qr}/play-auth?device_id=...` → signed URL + `start_position`.
-- [ ] `POST /abook/{qr}/progress` → desa posició i actualitza `last_seen_at`.
+- [x] `GET /abook/{qr}/play-auth?device_id=...` → signed URL + `start_position`.
+- [x] `POST /abook/{qr}/progress` → desa posició i actualitza `last_seen_at`.
 - [ ] `POST /abook/{qr}/recover` → amb `owner_pin`, allibera 1 slot o reset.
 - [ ] Job **neteja** dispositius inactius (> X dies).
 **DoD:** proves amb curl/Postman; límit 2 dispositius; resume correcte.

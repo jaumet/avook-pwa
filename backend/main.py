@@ -1,9 +1,14 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from . import database
+import database
 
 app = FastAPI()
+
+from api.v1 import abook as abook_v1
+
+app.include_router(abook_v1.router, prefix="/api/v1")
+
 
 @app.get("/")
 def read_root():
