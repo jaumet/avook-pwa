@@ -51,11 +51,11 @@
 
 ## 📱 Fase E — Frontend PWA (React)
 - [x] PWA (`manifest.json`, Service Worker, instal·lable).
-- [ ] Multillengua (CA/ES/EN).
+- [x] Multillengua (CA/ES/EN).
 - [x] Pantalles: Home, Escàner QR, Player, Errors/Estats, Recuperació PIN.
 - [x] Player HLS (`hls.js`) + `MediaSession` mòbil.
 - [x] `device_id` web amb WebCrypto (clau privada no-extractable) + IndexedDB.
-- [ ] Enviament `progress` periòdic (20–30 s i en pausa).
+- [x] Enviament `progress` periòdic (20–30 s i en pausa).
 **DoD:** 2 dispositius OK, tercer bloquejat; resume precís; UX clara.
 
 ## 🛠️ Fase F — API d’Administració (backend)

@@ -1,0 +1,11 @@
+{
+  "app_title": "Avook",
+  "app_subtitle": "Your personal audiobook player.",
+  "scan_qr_button": "Scan QR Code",
+  "scan_qr_title": "Scan QR Code",
+  "player_title": "Playing",
+  "player_starts_at": "Starts at: {{seconds}} seconds",
+  "error_no_auth": "No authorization data found. Please scan a QR code again.",
+  "error_scanner": "Error with the scanner. Please check camera permissions.",
+  "error_auth_failed": "Error: Failed to authorize."
+}
