@@ -1,5 +1,5 @@
-# Use an official Node.js runtime as a parent image
-FROM node:20-alpine
+# Stage 1: Build the React application
+FROM node:20-alpine AS build
 
 # Set the working directory
 WORKDIR /app
@@ -16,8 +16,17 @@ COPY . .
 # Build the application for production
 RUN npm run build
 
+# Stage 2: Serve the static files with a Python server
+FROM python:3.11-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the built assets from the build stage
+COPY --from=build /app/dist .
+
 # Make port 5173 available
 EXPOSE 5173
 
-# Serve the production build
-CMD ["./node_modules/.bin/serve", "-s", "dist", "-l", "5173"]
+# Serve the application
+CMD ["python", "-m", "http.server", "5173"]
