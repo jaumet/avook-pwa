@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useParams } from 'react-router-dom';
+import HLSPlayer from '../components/HLSPlayer';
 
 const PlayerPage = () => {
   const { qr } = useParams();
@@ -17,10 +18,14 @@ const PlayerPage = () => {
 
   return (
     <div>
-      <h1>Player for QR: {qr}</h1>
-      <p><strong>Signed URL:</strong> {authData.signed_url}</p>
-      <p><strong>Start Position:</strong> {authData.start_position} seconds</p>
-      {/* HLS player will be implemented here in a later step */}
+      <h1>{authData.title}</h1>
+      <p>by {authData.author}</p>
+      <HLSPlayer
+        src={authData.signed_url}
+        title={authData.title}
+        author={authData.author}
+      />
+      <p>Starts at: {authData.start_position} seconds</p>
     </div>
   );
 };

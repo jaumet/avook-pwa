@@ -16,7 +16,8 @@
     "zustand": "^4.4.0",
     "idb-keyval": "^6.2.1",
     "@zxing/library": "^0.20.0",
-    "react-zxing": "^2.0.0"
+    "react-zxing": "^2.0.0",
+    "hls.js": "^1.4.12"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",

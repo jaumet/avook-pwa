@@ -80,6 +80,8 @@ def play_auth(qr: str, device_id: str, db: Session = Depends(database.get_db)):
     return schemas.PlayAuthResponse(
         signed_url=signed_url,
         start_position=start_position,
+        title=qr_code.product.title.title,
+        author=qr_code.product.title.author,
     )
 
 
