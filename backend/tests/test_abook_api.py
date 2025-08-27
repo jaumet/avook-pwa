@@ -18,7 +18,7 @@ def test_play_auth_new_qr_new_device(client: TestClient, db_session: Session, mo
     )
 
     # Create a product and a title for the QR code to belong to
-    new_title = models.Title(slug="test-title", title="Test Title")
+    new_title = models.Title(slug="test-title", title="Test Title", author="Test Author")
     db_session.add(new_title)
     db_session.commit()
     new_product = models.Product(title_id=new_title.id)
@@ -35,6 +35,8 @@ def test_play_auth_new_qr_new_device(client: TestClient, db_session: Session, mo
     data = response.json()
     assert data["start_position"] == 0
     assert data["signed_url"] == mocked_url
+    assert data["title"] == "Test Title"
+    assert data["author"] == "Test Author"
 
     # Check that a new device binding was created
     binding = db_session.query(models.DeviceBinding).filter(
