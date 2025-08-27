@@ -13,8 +13,11 @@ RUN npm install
 # Copy the rest of the application's source code
 COPY . .
 
-# Make port 5173 available to the world outside this container
+# Build the application for production
+RUN npm run build
+
+# Make port 5173 available
 EXPOSE 5173
 
-# Run the app when the container launches
-CMD ["./node_modules/.bin/vite", "--host"]
+# Serve the production build
+CMD ["./node_modules/.bin/serve", "-s", "dist", "-l", "5173"]

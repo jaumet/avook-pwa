@@ -21,7 +21,8 @@
     "i18next": "^23.2.11",
     "react-i18next": "^13.0.2",
     "i18next-browser-languagedetector": "^7.1.0",
-    "i18next-http-backend": "^2.2.1"
+    "i18next-http-backend": "^2.2.1",
+    "serve": "^14.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
