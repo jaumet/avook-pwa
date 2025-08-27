@@ -32,6 +32,7 @@ def db_session():
 
 @pytest.fixture(scope="function")
 def client(db_session):
+    os.environ['TESTING'] = '1'
     def override_get_db():
         yield db_session
 
@@ -39,3 +40,4 @@ def client(db_session):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+    del os.environ['TESTING']
