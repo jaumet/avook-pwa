@@ -50,7 +50,7 @@
 **DoD:** reproducció HLS funcional via proxy amb URL signada.
 
 ## 📱 Fase E — Frontend PWA (React)
-- [ ] PWA (`manifest.json`, Service Worker, instal·lable).
+- [x] PWA (`manifest.json`, Service Worker, instal·lable).
 - [ ] Multillengua (CA/ES/EN).
 - [ ] Pantalles: Home, Escàner QR, Player, Errors/Estats, Recuperació PIN.
 - [ ] Player HLS (`hls.js`) + `MediaSession` mòbil.
