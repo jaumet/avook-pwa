@@ -1,8 +1,23 @@
 import React, { useEffect, useRef } from 'react';
 import Hls from 'hls.js';
+import axios from 'axios';
 
-const HLSPlayer = ({ src, title, author }) => {
+const HLSPlayer = ({ src, title, author, qr, deviceId }) => {
   const videoRef = useRef(null);
+
+  const syncProgress = async () => {
+    if (!videoRef.current || !qr || !deviceId) return;
+    const position = Math.round(videoRef.current.currentTime);
+    const apiUrl = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    try {
+      await axios.post(`${apiUrl}/api/v1/abook/${qr}/progress`, {
+        device_id: deviceId,
+        position_sec: position,
+      });
+    } catch (error) {
+      console.error("Failed to sync progress:", error);
+    }
+  };
 
   useEffect(() => {
     const video = videoRef.current;
@@ -18,7 +33,6 @@ const HLSPlayer = ({ src, title, author }) => {
         video.play();
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // For Safari and other browsers that support HLS natively
       video.src = src;
       video.addEventListener('loadedmetadata', () => {
         video.play();
@@ -32,17 +46,22 @@ const HLSPlayer = ({ src, title, author }) => {
         artist: author,
         album: 'Avook Audiobook',
       });
-
       navigator.mediaSession.setActionHandler('play', () => video.play());
       navigator.mediaSession.setActionHandler('pause', () => video.pause());
     }
+
+    // Progress syncing
+    const progressInterval = setInterval(syncProgress, 30000); // Sync every 30 seconds
+    video.addEventListener('pause', syncProgress);
 
     return () => {
       if (hls) {
         hls.destroy();
       }
+      clearInterval(progressInterval);
+      video.removeEventListener('pause', syncProgress);
     };
-  }, [src, title, author]);
+  }, [src, title, author, qr, deviceId]);
 
   return <video ref={videoRef} controls style={{ width: '100%' }} />;
 };

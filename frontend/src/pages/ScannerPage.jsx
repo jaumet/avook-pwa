@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useZxing } from 'react-zxing';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { getDeviceId } from '../services/device';
 
 const ScannerPage = () => {
+  const { t } = useTranslation();
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -27,7 +29,7 @@ const ScannerPage = () => {
       } catch (err) {
         console.error("API Error:", err);
         if (err.response) {
-          setError(`Error: ${err.response.data.detail || 'Failed to authorize.'}`);
+          setError(err.response.data.detail || t('error_auth_failed'));
         } else {
           setError('An unexpected error occurred.');
         }
@@ -35,13 +37,13 @@ const ScannerPage = () => {
     },
     onError(err) {
       console.error("Scanner Error:", err);
-      setError('Error with the scanner. Please check camera permissions.');
+      setError(t('error_scanner'));
     }
   });
 
   return (
     <div>
-      <h1>Scan QR Code</h1>
+      <h1>{t('scan_qr_title')}</h1>
       <video ref={ref} />
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
