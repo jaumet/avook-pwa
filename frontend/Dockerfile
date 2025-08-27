@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 5173
 
 # Run the app when the container launches
-CMD ["npm", "run", "dev"]
+CMD ["./node_modules/.bin/vite", "--host"]
