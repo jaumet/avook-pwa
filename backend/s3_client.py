@@ -37,7 +37,7 @@ def set_cors_policy():
     # We will use presigned URLs. The CORS policy is still needed for the browser
     # to be able to fetch the HLS manifest and segments.
     cors_configuration = {
-        'CORSConfiguration': [{
+        'CORSRules': [{
             'AllowedHeaders': ['*'],
             'AllowedMethods': ['GET'],
             'AllowedOrigins': [os.getenv("ALLOW_ORIGINS", "http://localhost:5173")],
