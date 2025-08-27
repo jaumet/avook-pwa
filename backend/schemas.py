@@ -7,3 +7,6 @@ class PlayAuthResponse(BaseModel):
 class ProgressRequest(BaseModel):
     device_id: str
     position_sec: int
+
+class RecoverRequest(BaseModel):
+    owner_pin: str

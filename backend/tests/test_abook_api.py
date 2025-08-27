@@ -9,7 +9,14 @@ def test_play_auth_qr_not_found(client: TestClient):
     assert response.status_code == 404
     assert response.json() == {"detail": "QR code not found"}
 
-def test_play_auth_new_qr_new_device(client: TestClient, db_session: Session):
+def test_play_auth_new_qr_new_device(client: TestClient, db_session: Session, mocker):
+    # Mock the S3 client
+    mocked_url = "http://mocked.s3.url/master.m3u8"
+    mocker.patch(
+        's3_client.s3_client.generate_presigned_url',
+        return_value=mocked_url
+    )
+
     # Create a product and a title for the QR code to belong to
     new_title = models.Title(slug="test-title", title="Test Title")
     db_session.add(new_title)
@@ -27,7 +34,7 @@ def test_play_auth_new_qr_new_device(client: TestClient, db_session: Session):
     assert response.status_code == 200
     data = response.json()
     assert data["start_position"] == 0
-    assert "https://placeholder.url/master.m3u8" in data["signed_url"]
+    assert data["signed_url"] == mocked_url
 
     # Check that a new device binding was created
     binding = db_session.query(models.DeviceBinding).filter(
@@ -118,3 +125,39 @@ def test_update_progress_valid(client: TestClient, db_session: Session):
 
     db_session.refresh(progress)
     assert progress.position_sec == 240
+
+
+def test_recover_device_slot(client: TestClient, db_session: Session):
+    # Create data
+    new_title = models.Title(slug="test-title-5", title="Test Title 5")
+    db_session.add(new_title)
+    db_session.commit()
+    new_product = models.Product(title_id=new_title.id)
+    db_session.add(new_product)
+    db_session.commit()
+    new_qr = models.QRCode(qr="test-qr-5", product_id=new_product.id, owner_pin_hash="1234")
+    db_session.add(new_qr)
+    db_session.commit()
+
+    # Create two existing bindings
+    import time; time.sleep(0.01)
+    binding1 = models.DeviceBinding(qr_code_id=new_qr.id, device_id="device1", active=True)
+    import time; time.sleep(0.01)
+    binding2 = models.DeviceBinding(qr_code_id=new_qr.id, device_id="device2", active=True)
+    db_session.add_all([binding1, binding2])
+    db_session.commit()
+
+    # Try to recover with wrong PIN
+    response = client.post("/api/v1/abook/test-qr-5/recover", json={"owner_pin": "wrong-pin"})
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Invalid PIN"}
+
+    # Try to recover with correct PIN
+    response = client.post("/api/v1/abook/test-qr-5/recover", json={"owner_pin": "1234"})
+    assert response.status_code == 204
+
+    # Check that the oldest binding (binding1) is now inactive
+    db_session.refresh(binding1)
+    assert binding1.active is False
+    db_session.refresh(binding2)
+    assert binding2.active is True

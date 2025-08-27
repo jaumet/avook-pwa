@@ -38,15 +38,15 @@
 ## 🌐 Fase C — API pública (sense registre d’usuari final)
 - [x] `GET /abook/{qr}/play-auth?device_id=...` → signed URL + `start_position`.
 - [x] `POST /abook/{qr}/progress` → desa posició i actualitza `last_seen_at`.
-- [ ] `POST /abook/{qr}/recover` → amb `owner_pin`, allibera 1 slot o reset.
-- [ ] Job **neteja** dispositius inactius (> X dies).
+- [x] `POST /abook/{qr}/recover` → amb `owner_pin`, allibera 1 slot o reset.
+- [x] Job **neteja** dispositius inactius (> X dies).
 **DoD:** proves amb curl/Postman; límit 2 dispositius; resume correcte.
 
 ## ☁️ Fase D — S3/MinIO + Proxy (HLS)
-- [ ] Bucket privat + policies; CORS habilitat.
-- [ ] Estructura: `hls/{book_id}/...`, `covers/{book_id}.jpg`, `manifests/{book_id}.json`.
-- [ ] Signatura d’URL per `master.m3u8` (TTL curt).
-- [ ] NGINX: `Accept-Ranges`, CORS, `Cache-Control` (curt per `.m3u8`, més llarg segments).
+- [x] Bucket privat + policies; CORS habilitat.
+- [x] Estructura: `hls/{book_id}/...`, `covers/{book_id}.jpg`, `manifests/{book_id}.json`.
+- [x] Signatura d’URL per `master.m3u8` (TTL curt).
+- [x] NGINX: `Accept-Ranges`, CORS, `Cache-Control` (curt per `.m3u8`, més llarg segments).
 **DoD:** reproducció HLS funcional via proxy amb URL signada.
 
 ## 📱 Fase E — Frontend PWA (React)

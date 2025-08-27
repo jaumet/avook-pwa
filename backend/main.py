@@ -2,6 +2,10 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import database
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import jobs
+import os
+import s3_client
 
 app = FastAPI()
 
@@ -27,3 +31,25 @@ def db_health_check(db: Session = Depends(database.get_db)):
         return {"status": "ok"}
     except Exception as e:
         return {"status": "error", "detail": str(e)}
+
+
+scheduler = AsyncIOScheduler()
+
+@scheduler.scheduled_job('interval', days=1)
+async def scheduled_cleanup():
+    db = database.SessionLocal()
+    try:
+        jobs.cleanup_inactive_devices(db=db)
+    finally:
+        db.close()
+
+@app.on_event("startup")
+async def startup_event():
+    if os.getenv("TESTING") != "1":
+        s3_client.create_bucket_if_not_exists()
+        scheduler.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    if os.getenv("TESTING") != "1":
+        scheduler.shutdown()

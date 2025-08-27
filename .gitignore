@@ -116,6 +116,10 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Test artifacts
+/test.db
+/backend/test.db
+
 # Node.js
 node_modules/
 npm-debug.log*
