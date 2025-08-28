@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useZxing } from 'react-zxing';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -44,34 +44,38 @@ const ScannerPage = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const { ref } = useZxing({
-    async onResult(result) {
-      setError('');
-      const qrCode = result.getText();
+  const handleResult = useCallback(async (result) => {
+    setError('');
+    const qrCode = result.getText();
 
-      try {
-        const deviceId = await getDeviceId();
-        const apiUrl = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    try {
+      const deviceId = await getDeviceId();
+      const apiUrl = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
-        const response = await axios.get(`${apiUrl}/api/v1/abook/${qrCode}/play-auth`, {
-          params: { device_id: deviceId }
-        });
+      const response = await axios.get(`${apiUrl}/api/v1/abook/${qrCode}/play-auth`, {
+        params: { device_id: deviceId }
+      });
 
-        navigate(`/play/${qrCode}`, { state: { authData: response.data } });
+      navigate(`/play/${qrCode}`, { state: { authData: response.data } });
 
-      } catch (err) {
-        console.error("API Error:", err);
-        if (err.response) {
-          setError(err.response.data.detail || t('error_auth_failed'));
-        } else {
-          setError('An unexpected error occurred.');
-        }
+    } catch (err) {
+      console.error("API Error:", err);
+      if (err.response) {
+        setError(err.response.data.detail || t('error_auth_failed'));
+      } else {
+        setError('An unexpected error occurred.');
       }
-    },
-    onError(err) {
-      console.error("Scanner Error:", err);
-      setError(t('error_scanner'));
     }
+  }, [navigate, t]);
+
+  const handleError = useCallback((err) => {
+    console.error("Scanner Error:", err);
+    setError(t('error_scanner'));
+  }, [t]);
+
+  const { ref } = useZxing({
+    onResult: handleResult,
+    onError: handleError,
   });
 
   return (
