@@ -12,3 +12,7 @@ class ProgressRequest(BaseModel):
 
 class RecoverRequest(BaseModel):
     owner_pin: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

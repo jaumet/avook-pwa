@@ -59,7 +59,7 @@
 **DoD:** 2 dispositius OK, tercer bloquejat; resume precís; UX clara.
 
 ## 🛠️ Fase F — API d’Administració (backend)
-- [ ] `/admin/login` (sessió o JWT).
+- [x] `/admin/login` (sessió o JWT).
 - [ ] CRUD **admin_users** (només `owner` pot crear/editors).
 - [ ] CRUD **titles** i **products**.
 - [ ] **Batches/QR**: generar N QR + PIN (hash), export CSV (només en generació).
