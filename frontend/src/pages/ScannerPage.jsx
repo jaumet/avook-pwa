@@ -60,7 +60,7 @@ const ScannerPage = () => {
     };
 
     html5QrCode.start(
-        { facingMode: "environment" },
+        undefined, // Let the library select the camera
         config,
         qrCodeSuccessCallback,
         qrCodeErrorCallback
