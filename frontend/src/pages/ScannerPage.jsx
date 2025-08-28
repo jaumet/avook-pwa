@@ -5,6 +5,40 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { getDeviceId } from '../services/device';
 
+const scannerContainerStyle = {
+  width: '100%',
+  maxWidth: '500px',
+  margin: '20px auto',
+  position: 'relative',
+  border: '1px solid #ccc',
+};
+
+const videoStyle = {
+  width: '100%',
+  height: 'auto',
+  display: 'block',
+};
+
+const overlayStyle = {
+  position: 'absolute',
+  top: '0',
+  left: '0',
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const targetBoxStyle = {
+    width: '60%',
+    height: '60%',
+    border: '3px solid red',
+    boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+    borderRadius: '8px',
+};
+
+
 const ScannerPage = () => {
   const { t } = useTranslation();
   const [error, setError] = useState('');
@@ -23,7 +57,6 @@ const ScannerPage = () => {
           params: { device_id: deviceId }
         });
 
-        // Navigate to player page with the data
         navigate(`/play/${qrCode}`, { state: { authData: response.data } });
 
       } catch (err) {
@@ -42,9 +75,15 @@ const ScannerPage = () => {
   });
 
   return (
-    <div>
+    <div style={{ textAlign: 'center' }}>
       <h1>{t('scan_qr_title')}</h1>
-      <video ref={ref} />
+      <div style={scannerContainerStyle}>
+        <video ref={ref} style={videoStyle} />
+        <div style={overlayStyle}>
+            <div style={targetBoxStyle}></div>
+        </div>
+      </div>
+      <p>Point your camera at a QR code.</p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
