@@ -1,32 +1,26 @@
 # Stage 1: Build the React application
 FROM node:20-alpine AS build
 
-# Set the working directory
 WORKDIR /app
-
-# Copy package.json and package-lock.json
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
-
-# Copy the rest of the application's source code
 COPY . .
-
-# Build the application for production
 RUN npm run build
 
-# Stage 2: Serve the static files with a Python server
-FROM python:3.11-slim
+# Stage 2: Serve the application with a Node.js server
+FROM node:20-alpine
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the built assets from the build stage
-COPY --from=build /app/dist .
+# Copy built assets from the build stage
+COPY --from=build /app/dist ./dist
+
+# Copy dependencies needed to run `serve`
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json .
 
 # Make port 5173 available
 EXPOSE 5173
 
-# Serve the application
-CMD ["python", "-m", "http.server", "5173"]
+# Serve the production build, correctly handling SPA routing
+CMD ["./node_modules/.bin/serve", "-s", "dist", "-l", "5173"]
