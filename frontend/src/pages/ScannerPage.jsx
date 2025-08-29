@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { getDeviceId } from '../services/device';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 const qrcodeRegionId = "html5qr-code-full-region";
 
@@ -36,7 +36,7 @@ const ScannerPage = () => {
     const html5QrCode = new Html5Qrcode(qrcodeRegionId);
     let isScannerStopped = false;
 
-    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+    const qrCodeSuccessCallback = (decodedText) => {
         if (!isScannerStopped) {
             isScannerStopped = true;
             html5QrCode.stop().then(() => {
@@ -48,26 +48,33 @@ const ScannerPage = () => {
         }
     };
 
-    const qrCodeErrorCallback = (errorMessage) => {
-        // This callback is called frequently, so we don't set errors here
-        // to avoid spamming the user. It's useful for debugging.
+    const qrCodeErrorCallback = () => {
+        // Frequent callback; avoid logging noise
     };
 
-    const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true,
+    const startScanner = async () => {
+        try {
+            const devices = await Html5Qrcode.getCameras();
+            const deviceId = devices?.[0]?.id;
+            await html5QrCode.start(
+                deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    rememberLastUsedCamera: true,
+                    experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+                },
+                qrCodeSuccessCallback,
+                qrCodeErrorCallback
+            );
+        } catch (err) {
+            setError(t('error_scanner'));
+            console.error("Unable to start scanning.", err);
+        }
     };
 
-    html5QrCode.start(
-        undefined, // Let the library select the camera
-        config,
-        qrCodeSuccessCallback,
-        qrCodeErrorCallback
-    ).catch((err) => {
-        setError(t('error_scanner'));
-        console.error("Unable to start scanning.", err);
-    });
+    startScanner();
 
     return () => {
         if (!isScannerStopped) {
