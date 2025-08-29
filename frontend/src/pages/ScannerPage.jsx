@@ -1,16 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { getDeviceId } from '../services/device';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 const qrcodeRegionId = "html5qr-code-full-region";
 
 const ScannerPage = () => {
   const { t } = useTranslation();
   const [error, setError] = useState('');
+  const [useNative, setUseNative] = useState(false);
   const navigate = useNavigate();
+  const videoRef = useRef(null);
+  const useNativeRef = useRef(false);
+  const streamRef = useRef(null);
+  const animationRef = useRef(null);
+  const html5QrCodeRef = useRef(null);
 
   const handleResult = useCallback(async (qrCode) => {
     setError('');
@@ -32,56 +38,102 @@ const ScannerPage = () => {
   }, [navigate, t]);
 
   useEffect(() => {
-    // This effect will run only once on component mount.
-    const html5QrCode = new Html5Qrcode(qrcodeRegionId);
-    let isScannerStopped = false;
+    const stopNative = () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+    };
 
-    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-        if (!isScannerStopped) {
-            isScannerStopped = true;
-            html5QrCode.stop().then(() => {
-                handleResult(decodedText);
-            }).catch((err) => {
-                console.error("Failed to stop scanner after success", err);
-                handleResult(decodedText); // Proceed even if stop fails
+    const startScanner = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+        const deviceId = videoDevices[0]?.deviceId;
+
+        if ('BarcodeDetector' in window) {
+          const formats = await window.BarcodeDetector.getSupportedFormats();
+          if (formats.includes('qr_code')) {
+            useNativeRef.current = true;
+            setUseNative(true);
+            streamRef.current = await navigator.mediaDevices.getUserMedia({
+              video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'environment' }
             });
+            videoRef.current.srcObject = streamRef.current;
+            await videoRef.current.play();
+            const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+            const scan = async () => {
+              try {
+                const barcodes = await detector.detect(videoRef.current);
+                if (barcodes.length) {
+                  stopNative();
+                  handleResult(barcodes[0].rawValue);
+                  return;
+                }
+              } catch (e) {
+                // ignore detection errors
+              }
+              animationRef.current = requestAnimationFrame(scan);
+            };
+            animationRef.current = requestAnimationFrame(scan);
+            return;
+          }
         }
-    };
 
-    const qrCodeErrorCallback = (errorMessage) => {
-        // This callback is called frequently, so we don't set errors here
-        // to avoid spamming the user. It's useful for debugging.
-    };
-
-    const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true,
-    };
-
-    html5QrCode.start(
-        undefined, // Let the library select the camera
-        config,
-        qrCodeSuccessCallback,
-        qrCodeErrorCallback
-    ).catch((err) => {
+        html5QrCodeRef.current = new Html5Qrcode(qrcodeRegionId);
+        await html5QrCodeRef.current.start(
+          deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            rememberLastUsedCamera: true,
+            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+          },
+          (decodedText) => {
+            html5QrCodeRef.current
+              .stop()
+              .then(() => handleResult(decodedText))
+              .catch(err => {
+                console.error("Failed to stop scanner after success", err);
+                handleResult(decodedText);
+              });
+          },
+          () => {}
+        );
+      } catch (err) {
         setError(t('error_scanner'));
         console.error("Unable to start scanning.", err);
-    });
+      }
+    };
+
+    startScanner();
 
     return () => {
-        if (!isScannerStopped) {
-            html5QrCode.stop().catch(err => {
-                console.error("Failed to stop scanner on cleanup", err);
-            });
-        }
+      if (useNativeRef.current) {
+        stopNative();
+      } else if (html5QrCodeRef.current) {
+        html5QrCodeRef.current.stop().catch(err => {
+          console.error("Failed to stop scanner on cleanup", err);
+        });
+      }
     };
   }, [handleResult, t]);
 
   return (
     <div style={{ textAlign: 'center' }}>
       <h1>{t('scan_qr_title')}</h1>
-      <div id={qrcodeRegionId} style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }} />
+      {useNative ? (
+        <video
+          ref={videoRef}
+          style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}
+        />
+      ) : (
+        <div
+          id={qrcodeRegionId}
+          style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}
+        />
+      )}
       <p>Point your camera at a QR code.</p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
