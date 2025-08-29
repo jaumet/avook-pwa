@@ -6,3 +6,5 @@ alembic
 fastapi-apscheduler
 apscheduler
 boto3
+python-jose[cryptography]
+passlib[bcrypt]
