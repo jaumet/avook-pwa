@@ -107,6 +107,7 @@ const ScannerPage = () => {
       }
     };
 
+
     startScanner();
 
     return () => {
