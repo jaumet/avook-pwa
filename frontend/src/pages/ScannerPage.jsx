@@ -39,8 +39,8 @@ const ScannerPage = () => {
       }
 
       const deviceId = await getDeviceId();
-      const apiUrl = import.meta.env.VITE_API_BASE;
-      const url = `${apiUrl ? apiUrl.replace(/\/$/, '') : ''}/api/v1/abook/${qrCode}/play-auth`;
+      const apiBase = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '');
+      const url = `${apiBase}/api/v1/abook/${qrCode}/play-auth`;
       const response = await axios.get(url, {
         params: { device_id: deviceId }
       });
