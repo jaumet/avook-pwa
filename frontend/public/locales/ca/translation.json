@@ -7,5 +7,6 @@
   "player_starts_at": "Comença a: {{seconds}} segons",
   "error_no_auth": "No s'han trobat dades d'autorització. Si us plau, escaneja un codi QR de nou.",
   "error_scanner": "Error amb l'escàner. Si us plau, comprova els permisos de la càmera.",
-  "error_auth_failed": "Error: Ha fallat l'autorització."
+  "error_auth_failed": "Error: Ha fallat l'autorització.",
+  "error_network": "Error de xarxa. Si us plau, torna-ho a provar."
 }

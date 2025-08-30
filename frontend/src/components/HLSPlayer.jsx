@@ -8,9 +8,9 @@ const HLSPlayer = ({ src, title, author, qr, deviceId }) => {
   const syncProgress = async () => {
     if (!videoRef.current || !qr || !deviceId) return;
     const position = Math.round(videoRef.current.currentTime);
-    const apiUrl = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const apiBase = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '');
     try {
-      await axios.post(`${apiUrl}/api/v1/abook/${qr}/progress`, {
+      await axios.post(`${apiBase}/api/v1/abook/${qr}/progress`, {
         device_id: deviceId,
         position_sec: position,
       });
