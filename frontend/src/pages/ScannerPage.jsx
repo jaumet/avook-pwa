@@ -39,8 +39,9 @@ const ScannerPage = () => {
       }
 
       const deviceId = await getDeviceId();
-      const apiUrl = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
-      const response = await axios.get(`${apiUrl}/api/v1/abook/${extractedCode}/play-auth`, {
+      const apiUrl = import.meta.env.VITE_API_BASE;
+      const url = `${apiUrl ? apiUrl.replace(/\/$/, '') : ''}/api/v1/abook/${qrCode}/play-auth`;
+      const response = await axios.get(url, {
         params: { device_id: deviceId }
       });
       navigate(`/play/${extractedCode}`, { state: { authData: response.data } });
@@ -49,7 +50,7 @@ const ScannerPage = () => {
       if (err.response) {
         setError(err.response.data.detail || t('error_auth_failed'));
       } else {
-        setError('An unexpected error occurred.');
+        setError(t('error_network'));
       }
     }
   }, [navigate, t]);
@@ -123,7 +124,6 @@ const ScannerPage = () => {
         console.error("Unable to start scanning.", err);
       }
     };
-
 
     startScanner();
 

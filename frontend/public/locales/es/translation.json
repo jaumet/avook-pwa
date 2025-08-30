@@ -7,5 +7,6 @@
   "player_starts_at": "Empieza en: {{seconds}} segundos",
   "error_no_auth": "No se encontraron datos de autorización. Por favor, escanea un código QR de nuevo.",
   "error_scanner": "Error con el escáner. Por favor, comprueba los permisos de la cámara.",
-  "error_auth_failed": "Error: Fallo al autorizar."
+  "error_auth_failed": "Error: Fallo al autorizar.",
+  "error_network": "Error de red. Por favor, inténtalo de nuevo."
 }
