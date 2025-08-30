@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import database
@@ -8,6 +9,15 @@ import os
 import s3_client
 
 app = FastAPI()
+
+# Allow cross-origin requests during development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 from api.v1 import abook as abook_v1
 from api.v1 import admin_auth as admin_v1
