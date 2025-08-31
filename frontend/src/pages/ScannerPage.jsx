@@ -3,28 +3,45 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { getDeviceId } from '../services/device';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 const ScannerPage = () => {
   const { t } = useTranslation();
   const [error, setError] = useState('');
+  const [useNative, setUseNative] = useState(false);
   const navigate = useNavigate();
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const animationRef = useRef(null);
   const html5QrRef = useRef(null);
   const regionId = 'html5qr-code-region';
-
-  const handleResult = useCallback(async (qrCode) => {
+  const handleResult = useCallback(async (qrCodeUrl) => {
     setError('');
     try {
+      let extractedCode = null;
+      try {
+        const url = new URL(qrCodeUrl);
+        const match = url.pathname.match(/\/code\/([^\/]+)/) || url.pathname.match(/\/share\/([^\/]+)/);
+        if (match && match[1]) {
+          extractedCode = match[1];
+        }
+      } catch (e) {
+        // Not a valid URL, maybe the QR code is the code itself
+        extractedCode = qrCodeUrl;
+      }
+
+      if (!extractedCode) {
+        setError(t('error_invalid_qr'));
+        return;
+      }
+
       const deviceId = await getDeviceId();
       const apiBase = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '');
       const url = `${apiBase}/api/v1/abook/${qrCode}/play-auth`;
       const response = await axios.get(url, {
         params: { device_id: deviceId }
       });
-      navigate(`/play/${qrCode}`, { state: { authData: response.data } });
+      navigate(`/play/${extractedCode}`, { state: { authData: response.data } });
     } catch (err) {
       console.error("API Error:", err);
       if (err.response) {
