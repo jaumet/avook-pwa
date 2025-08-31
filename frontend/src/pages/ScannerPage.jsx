@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { getDeviceId } from '../services/device';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 
 const ScannerPage = () => {
   const { t } = useTranslation();
@@ -15,7 +15,8 @@ const ScannerPage = () => {
   const animationRef = useRef(null);
   const html5QrRef = useRef(null);
   const regionId = 'html5qr-code-region';
-  const handleResult = useCallback(async (qrCodeUrl) => {
+
+  const handleResult = useCallback(async (qrCode) => {
     setError('');
     try {
       let extractedCode = null;
@@ -36,14 +37,17 @@ const ScannerPage = () => {
       }
 
       const deviceId = await getDeviceId();
-      const apiBase = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '');
-      const url = `${apiBase}/api/v1/abook/${qrCode}/play-auth`;
+      const baseFromEnv = import.meta.env.VITE_API_BASE;
+      const fallbackBase = window.location.port === '5173' ? 'http://localhost:8000' : '';
+      const apiBase = (baseFromEnv || fallbackBase).replace(/\/$/, '');
+      const slug = qrCode.trim().split('/').pop();
+      const url = `${apiBase}/api/v1/abook/${slug}/play-auth`;
       const response = await axios.get(url, {
         params: { device_id: deviceId }
       });
-      navigate(`/play/${extractedCode}`, { state: { authData: response.data } });
+      navigate(`/play/${slug}`, { state: { authData: response.data } });
     } catch (err) {
-      console.error("API Error:", err);
+      console.error('API Error:', err);
       if (err.response) {
         setError(err.response.data.detail || t('error_auth_failed'));
       } else {
