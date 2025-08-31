@@ -1,87 +1,123 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { getDeviceId } from '../services/device';
-import { Html5Qrcode } from 'html5-qrcode';
-
-const qrcodeRegionId = "html5qr-code-full-region";
+import { BrowserMultiFormatReader } from '@zxing/browser';
 
 const ScannerPage = () => {
   const { t } = useTranslation();
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const animationRef = useRef(null);
+  const zxingReaderRef = useRef(null);
 
   const handleResult = useCallback(async (qrCode) => {
     setError('');
     try {
       const deviceId = await getDeviceId();
-      const apiUrl = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
-      const response = await axios.get(`${apiUrl}/api/v1/abook/${qrCode}/play-auth`, {
+      const baseFromEnv = import.meta.env.VITE_API_BASE;
+      const fallbackBase = window.location.port === '5173' ? 'http://localhost:8000' : '';
+      const apiBase = (baseFromEnv || fallbackBase).replace(/\/$/, '');
+      const slug = qrCode.trim().split('/').pop();
+      const url = `${apiBase}/api/v1/abook/${slug}/play-auth`;
+      const response = await axios.get(url, {
         params: { device_id: deviceId }
       });
-      navigate(`/play/${qrCode}`, { state: { authData: response.data } });
+      navigate(`/play/${slug}`, { state: { authData: response.data } });
     } catch (err) {
-      console.error("API Error:", err);
+      console.error('API Error:', err);
       if (err.response) {
         setError(err.response.data.detail || t('error_auth_failed'));
       } else {
-        setError('An unexpected error occurred.');
+        setError(t('error_network'));
       }
     }
   }, [navigate, t]);
 
   useEffect(() => {
-    // This effect will run only once on component mount.
-    const html5QrCode = new Html5Qrcode(qrcodeRegionId);
-    let isScannerStopped = false;
+    const stop = () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      if (zxingReaderRef.current) {
+        zxingReaderRef.current.reset();
+        zxingReaderRef.current = null;
+      }
+    };
 
-    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-        if (!isScannerStopped) {
-            isScannerStopped = true;
-            html5QrCode.stop().then(() => {
-                handleResult(decodedText);
-            }).catch((err) => {
-                console.error("Failed to stop scanner after success", err);
-                handleResult(decodedText); // Proceed even if stop fails
-            });
+    const startScanner = async () => {
+      try {
+        const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+        const deviceId = devices[0]?.deviceId;
+
+        if ('BarcodeDetector' in window) {
+          streamRef.current = await navigator.mediaDevices.getUserMedia({
+            video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'environment' }
+          });
+          videoRef.current.style.display = 'block';
+          videoRef.current.srcObject = streamRef.current;
+          await videoRef.current.play();
+
+          const formats = await window.BarcodeDetector.getSupportedFormats();
+          if (formats.includes('qr_code')) {
+            const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+            const scan = async () => {
+              try {
+                if (videoRef.current.readyState < videoRef.current.HAVE_ENOUGH_DATA) {
+                  animationRef.current = requestAnimationFrame(scan);
+                  return;
+                }
+                const barcodes = await detector.detect(videoRef.current);
+                if (barcodes.length) {
+                  stop();
+                  handleResult(barcodes[0].rawValue);
+                  return;
+                }
+              } catch (e) {
+                // ignore detection errors
+              }
+              animationRef.current = requestAnimationFrame(scan);
+            };
+            animationRef.current = requestAnimationFrame(scan);
+            return;
+          }
         }
-    };
 
-    const qrCodeErrorCallback = (errorMessage) => {
-        // This callback is called frequently, so we don't set errors here
-        // to avoid spamming the user. It's useful for debugging.
-    };
-
-    const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true,
-    };
-
-    html5QrCode.start(
-        undefined, // Let the library select the camera
-        config,
-        qrCodeSuccessCallback,
-        qrCodeErrorCallback
-    ).catch((err) => {
+        videoRef.current.style.display = 'block';
+        zxingReaderRef.current = new BrowserMultiFormatReader();
+        await zxingReaderRef.current.decodeFromVideoDevice(
+          deviceId,
+          videoRef.current,
+          (result, err) => {
+            if (result) {
+              stop();
+              handleResult(result.getText());
+            }
+          }
+        );
+      } catch (err) {
         setError(t('error_scanner'));
-        console.error("Unable to start scanning.", err);
-    });
-
-    return () => {
-        if (!isScannerStopped) {
-            html5QrCode.stop().catch(err => {
-                console.error("Failed to stop scanner on cleanup", err);
-            });
-        }
+        console.error('Unable to start scanning.', err);
+      }
     };
+
+    startScanner();
+
+    return stop;
   }, [handleResult, t]);
 
   return (
     <div style={{ textAlign: 'center' }}>
       <h1>{t('scan_qr_title')}</h1>
-      <div id={qrcodeRegionId} style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }} />
+      <video
+        ref={videoRef}
+        style={{ width: '100%', maxWidth: '500px', margin: '0 auto', display: 'none' }}
+      />
       <p>Point your camera at a QR code.</p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
