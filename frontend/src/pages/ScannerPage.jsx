@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { getDeviceId } from '../services/device';
-import { Html5Qrcode } from 'html5-qrcode';
+import { BrowserMultiFormatReader } from '@zxing/browser';
 
 const ScannerPage = () => {
   const { t } = useTranslation();
@@ -13,8 +13,7 @@ const ScannerPage = () => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const animationRef = useRef(null);
-  const html5QrRef = useRef(null);
-  const regionId = 'html5qr-code-region';
+  const zxingReaderRef = useRef(null);
 
   const handleResult = useCallback(async (qrCode) => {
     setError('');
@@ -63,22 +62,18 @@ const ScannerPage = () => {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
-      if (html5QrRef.current) {
-        html5QrRef.current.stop().catch(() => {});
-        html5QrRef.current.clear();
-        html5QrRef.current = null;
+      if (zxingReaderRef.current) {
+        zxingReaderRef.current.reset();
+        zxingReaderRef.current = null;
       }
     };
 
     const startScanner = async () => {
       try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(d => d.kind === 'videoinput');
-        const deviceId = videoDevices[0]?.deviceId;
+        const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+        const deviceId = devices[0]?.deviceId;
 
         if ('BarcodeDetector' in window) {
-          const regionEl = document.getElementById(regionId);
-          if (regionEl) regionEl.style.display = 'none';
           streamRef.current = await navigator.mediaDevices.getUserMedia({
             video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'environment' }
           });
@@ -111,16 +106,17 @@ const ScannerPage = () => {
           }
         }
 
-        videoRef.current.style.display = 'none';
-        html5QrRef.current = new Html5Qrcode(regionId);
-        await html5QrRef.current.start(
-          deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'environment' },
-          { fps: 10, qrbox: 250 },
-          (text) => {
-            stop();
-            handleResult(text);
-          },
-          undefined
+        videoRef.current.style.display = 'block';
+        zxingReaderRef.current = new BrowserMultiFormatReader();
+        await zxingReaderRef.current.decodeFromVideoDevice(
+          deviceId,
+          videoRef.current,
+          (result, err) => {
+            if (result) {
+              stop();
+              handleResult(result.getText());
+            }
+          }
         );
       } catch (err) {
         setError(t('error_scanner'));
@@ -140,7 +136,6 @@ const ScannerPage = () => {
         ref={videoRef}
         style={{ width: '100%', maxWidth: '500px', margin: '0 auto', display: 'none' }}
       />
-      <div id={regionId} style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }} />
       <p>Point your camera at a QR code.</p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
