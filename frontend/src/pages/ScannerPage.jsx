@@ -8,15 +8,32 @@ import { Html5Qrcode } from 'html5-qrcode';
 const ScannerPage = () => {
   const { t } = useTranslation();
   const [error, setError] = useState('');
+  const [useNative, setUseNative] = useState(false);
   const navigate = useNavigate();
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const animationRef = useRef(null);
   const html5QrRef = useRef(null);
-
   const handleResult = useCallback(async (qrCode) => {
     setError('');
     try {
+      let extractedCode = null;
+      try {
+        const url = new URL(qrCodeUrl);
+        const match = url.pathname.match(/\/code\/([^\/]+)/) || url.pathname.match(/\/share\/([^\/]+)/);
+        if (match && match[1]) {
+          extractedCode = match[1];
+        }
+      } catch (e) {
+        // Not a valid URL, maybe the QR code is the code itself
+        extractedCode = qrCodeUrl;
+      }
+
+      if (!extractedCode) {
+        setError(t('error_invalid_qr'));
+        return;
+      }
+
       const deviceId = await getDeviceId();
       const baseFromEnv = import.meta.env.VITE_API_BASE;
       const fallbackBase = window.location.port === '5173' ? 'http://localhost:8000' : '';
