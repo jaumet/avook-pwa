@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List
@@ -11,6 +11,7 @@ import auth
 import database
 import models
 import schemas
+import s3_client
 
 router = APIRouter(
     prefix="/admin",
@@ -138,6 +139,34 @@ def delete_title(title_id: int, db: Session = Depends(database.get_db)):
     db.delete(db_title)
     db.commit()
     return
+
+@router.post("/titles/{title_id}/upload-cover", response_model=schemas.Title)
+def upload_cover_image(title_id: int, file: UploadFile = File(...), db: Session = Depends(database.get_db)):
+    db_title = db.query(models.Title).filter(models.Title.id == title_id).first()
+    if db_title is None:
+        raise HTTPException(status_code=404, detail="Title not found")
+
+    # We can use the title's slug to create a unique and friendly file name
+    file_extension = file.filename.split('.')[-1]
+    s3_key = f"covers/{db_title.slug}.{file_extension}"
+
+    try:
+        s3_client.s3_client.upload_fileobj(
+            file.file,
+            s3_client.S3_BUCKET,
+            s3_key,
+            ExtraArgs={'ContentType': file.content_type}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload to S3: {str(e)}")
+
+    # Update the cover_path in the database
+    # The path should be the key, so we can construct the full URL later
+    db_title.cover_path = s3_key
+    db.commit()
+    db.refresh(db_title)
+
+    return db_title
 
 # --- Product Management ---
 
