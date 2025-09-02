@@ -20,11 +20,13 @@ app.add_middleware(
 )
 
 from api.v1 import abook as abook_v1
-from api.v1 import admin_auth as admin_v1
+from api.v1 import admin_auth as admin_auth_v1
+from api.v1 import admin as admin_v1
 
 app.include_router(abook_v1.router, prefix="/api/v1")
+app.include_router(admin_auth_v1.router, prefix="/api/v1")
 app.include_router(admin_v1.router, prefix="/api/v1")
-print("Admin router included successfully.")
+print("Admin routers included successfully.")
 
 
 @app.get("/")
