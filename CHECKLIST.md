@@ -67,9 +67,9 @@
 **DoD:** admins poden crear catàleg, lots i gestionar QR/dispositius.
 
 ## 🖥️ Fase G — Panell d’Administració (frontend)
-- [ ] Login admin.
+- [x] Login admin.
 - [ ] Vistes: Títols, Productes, Lots/QR, Detall QR, Usuaris admins.
-- [ ] Pujar portada i vincular manifest `book_id`.
+- [x] Pujar portada i vincular manifest `book_id`.
 **DoD:** flux complet d’admin operatiu.
 
 ## 🔐 Fase H — Operacions i seguretat

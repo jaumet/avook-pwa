@@ -227,6 +227,17 @@ def delete_product(product_id: int, db: Session = Depends(database.get_db)):
 
 from sqlalchemy.orm import joinedload
 
+@router.get("/products/{product_id}/batches", response_model=List[schemas.Batch])
+def read_product_batches(product_id: int, db: Session = Depends(database.get_db)):
+    """
+    Get all batches for a specific product.
+    """
+    db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(status_code=404, detail=f"Product with id {product_id} not found")
+
+    return db_product.batches
+
 @router.post("/products/{product_id}/batches", response_class=StreamingResponse)
 def create_batch_and_generate_qr_codes(
     product_id: int,
@@ -288,6 +299,17 @@ def create_batch_and_generate_qr_codes(
     response.headers["Content-Disposition"] = f"attachment; filename=qrcodes_batch_{db_batch.id}.csv"
 
     return response
+
+@router.get("/batches/{batch_id}/qrcodes", response_model=List[schemas.QRCode])
+def read_batch_qr_codes(batch_id: int, db: Session = Depends(database.get_db)):
+    """
+    Get all QR codes for a specific batch.
+    """
+    db_batch = db.query(models.Batch).filter(models.Batch.id == batch_id).first()
+    if not db_batch:
+        raise HTTPException(status_code=404, detail=f"Batch with id {batch_id} not found")
+
+    return db_batch.qr_codes
 
 @router.get("/qrcodes/{qr}", response_model=schemas.QRCodeDetails)
 def read_qr_code_details(qr: str, db: Session = Depends(database.get_db)):

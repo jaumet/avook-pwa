@@ -1,50 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
+import TitleForm from '../../components/admin/TitleForm';
 
 function TitlesPage() {
   const [titles, setTitles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [editingTitle, setEditingTitle] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
 
-  useEffect(() => {
-    const fetchTitles = async () => {
-      try {
-        const response = await api.get('/api/v1/admin/titles');
-        setTitles(response.data);
-      } catch (err) {
-        setError('Failed to fetch titles.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTitles();
+  const fetchTitles = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/v1/admin/titles');
+      setTitles(response.data);
+    } catch (err) {
+      setError('Failed to fetch titles.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
+  useEffect(() => {
+    fetchTitles();
+  }, [fetchTitles]);
+
+  const handleFormFinished = () => {
+    setEditingTitle(null);
+    setIsCreating(false);
+    fetchTitles(); // Refetch all titles
   };
 
-  const handleUpload = async (titleId) => {
-    if (!selectedFile) {
+  const handleDelete = async (titleId) => {
+    if (window.confirm('Are you sure you want to delete this title?')) {
+      try {
+        await api.delete(`/api/v1/admin/titles/${titleId}`);
+        fetchTitles(); // Refetch
+      } catch (err) {
+        setError('Failed to delete title.');
+        console.error(err);
+      }
+    }
+  };
+
+  const handleUpload = async (titleId, file) => {
+    if (!file) {
       alert('Please select a file first!');
       return;
     }
-
     const formData = new FormData();
-    formData.append('file', selectedFile);
-
+    formData.append('file', file);
     try {
-      const response = await api.post(`/api/v1/admin/titles/${titleId}/upload-cover`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      await api.post(`/api/v1/admin/titles/${titleId}/upload-cover`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      // Update the title in the list with the new cover path
-      setTitles(titles.map(t => t.id === titleId ? response.data : t));
-      alert('Upload successful!');
+      fetchTitles(); // Refetch to show new cover path
     } catch (err) {
       setError('Failed to upload cover.');
       console.error(err);
@@ -54,9 +65,19 @@ function TitlesPage() {
   if (loading) return <div>Loading...</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
+  if (isCreating || editingTitle) {
+    return (
+      <div>
+        <button onClick={() => { setIsCreating(false); setEditingTitle(null); }}>Back to List</button>
+        <TitleForm onFinished={handleFormFinished} existingTitle={editingTitle} />
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1>Titles Management</h1>
+      <button onClick={() => setIsCreating(true)}>Create New Title</button>
       <table>
         <thead>
           <tr>
@@ -64,7 +85,7 @@ function TitlesPage() {
             <th>Title</th>
             <th>Author</th>
             <th>Cover Path</th>
-            <th>Upload Cover</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -75,8 +96,9 @@ function TitlesPage() {
               <td>{title.author}</td>
               <td>{title.cover_path}</td>
               <td>
-                <input type="file" onChange={handleFileChange} />
-                <button onClick={() => handleUpload(title.id)}>Upload</button>
+                <button onClick={() => setEditingTitle(title)}>Edit</button>
+                <button onClick={() => handleDelete(title.id)}>Delete</button>
+                <input type="file" onChange={(e) => handleUpload(title.id, e.target.files[0])} style={{ display: 'block', marginTop: '5px' }} />
               </td>
             </tr>
           ))}
