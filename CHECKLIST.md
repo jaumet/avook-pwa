@@ -22,6 +22,7 @@
 - [x] `.env.example` per `frontend`, `backend`, `infra`.
 - [x] Docker Compose amb serveis (sense codi d’app encara).
 - [x] Health checks bàsics per serveis.
+- [x] Mecanisme per crear usuari admin inicial via ENV.
 **DoD:** `docker compose up` aixeca tots els contenidors i responen ping/health.
 
 ## 🗃️ Fase B — Model de dades (PostgreSQL)
@@ -68,7 +69,7 @@
 
 ## 🖥️ Fase G — Panell d’Administració (frontend)
 - [x] Login admin.
-- [ ] Vistes: Títols, Productes, Lots/QR, Detall QR, Usuaris admins.
+- [x] Vistes: Títols, Productes, Lots/QR, Detall QR, Usuaris admins.
 - [x] Pujar portada i vincular manifest `book_id`.
 **DoD:** flux complet d’admin operatiu.
 
