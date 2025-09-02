@@ -7,6 +7,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import jobs
 import os
 import s3_client
+import models
+import auth
 
 app = FastAPI()
 
@@ -58,9 +60,33 @@ async def scheduled_cleanup():
     finally:
         db.close()
 
+def create_initial_admin_user():
+    db = database.SessionLocal()
+    try:
+        # Check if any admin users exist
+        if db.query(models.AdminUser).count() == 0:
+            email = os.getenv("ADMIN_EMAIL")
+            password = os.getenv("ADMIN_PASSWORD")
+            if email and password:
+                hashed_password = auth.get_password_hash(password)
+                initial_user = models.AdminUser(
+                    email=email,
+                    password_hash=hashed_password,
+                    role=models.RoleEnum.owner
+                )
+                db.add(initial_user)
+                db.commit()
+                print(f"Initial admin user '{email}' created successfully.")
+            else:
+                print("ADMIN_EMAIL or ADMIN_PASSWORD not set. Skipping initial user creation.")
+    finally:
+        db.close()
+
+
 @app.on_event("startup")
 async def startup_event():
     if os.getenv("TESTING") != "1":
+        create_initial_admin_user()
         s3_client.create_bucket_if_not_exists()
         scheduler.start()
 
