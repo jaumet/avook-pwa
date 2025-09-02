@@ -60,10 +60,10 @@
 
 ## 🛠️ Fase F — API d’Administració (backend)
 - [x] `/admin/login` (sessió o JWT).
-- [ ] CRUD **admin_users** (només `owner` pot crear/editors).
-- [ ] CRUD **titles** i **products**.
-- [ ] **Batches/QR**: generar N QR + PIN (hash), export CSV (només en generació).
-- [ ] **QR detall**: estat, dispositius vinculats, alliberar/reset.
+- [x] CRUD **admin_users** (només `owner` pot crear/editors).
+- [x] CRUD **titles** i **products**.
+- [x] **Batches/QR**: generar N QR + PIN (hash), export CSV (només en generació).
+- [x] **QR detall**: estat, dispositius vinculats, alliberar/reset.
 **DoD:** admins poden crear catàleg, lots i gestionar QR/dispositius.
 
 ## 🖥️ Fase G — Panell d’Administració (frontend)
