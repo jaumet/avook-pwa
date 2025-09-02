@@ -11,6 +11,8 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import UsersPage from './pages/admin/UsersPage';
 import TitlesPage from './pages/admin/TitlesPage';
 import ProductsPage from './pages/admin/ProductsPage';
+import BatchesPage from './pages/admin/BatchesPage';
+import QRDetailPage from './pages/admin/QRDetailPage';
 
 function App() {
   return (
@@ -36,6 +38,8 @@ function App() {
           <Route path="users" element={<UsersPage />} />
           <Route path="titles" element={<TitlesPage />} />
           <Route path="products" element={<ProductsPage />} />
+          <Route path="batches" element={<BatchesPage />} />
+          <Route path="qrcodes/:qr" element={<QRDetailPage />} />
         </Route>
       </Routes>
     </Router>

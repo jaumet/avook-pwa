@@ -12,6 +12,7 @@ function AdminLayout() {
           <li><Link to="/admin/users">Users</Link></li>
           <li><Link to="/admin/titles">Titles</Link></li>
           <li><Link to="/admin/products">Products</Link></li>
+          <li><Link to="/admin/batches">Batches & QR</Link></li>
         </ul>
       </nav>
       <main style={{ flex: 1, padding: '1rem' }}>
