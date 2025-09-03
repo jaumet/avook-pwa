@@ -14,7 +14,6 @@ import ProductsPage from './pages/admin/ProductsPage';
 import BatchesPage from './pages/admin/BatchesPage';
 import QRDetailPage from './pages/admin/QRDetailPage';
 import LegalPage from './pages/LegalPage';
-import AuthVerify from './services/AuthVerify';
 
 function App() {
   return (
