@@ -12,7 +12,8 @@ services:
     env_file:
       - ../frontend/.env
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - avook_net
 
@@ -27,6 +28,11 @@ services:
     depends_on:
       - db
       - object-store
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - avook_net
 
