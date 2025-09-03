@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -14,7 +15,53 @@ import models
 import auth
 
 limiter = Limiter(key_func=get_remote_address)
-app = FastAPI()
+scheduler = AsyncIOScheduler()
+
+def create_initial_admin_user():
+    db = database.SessionLocal()
+    try:
+        # Check if any admin users exist
+        if db.query(models.AdminUser).count() == 0:
+            email = os.getenv("ADMIN_EMAIL")
+            password = os.getenv("ADMIN_PASSWORD")
+            if email and password:
+                hashed_password = auth.get_password_hash(password)
+                initial_user = models.AdminUser(
+                    email=email,
+                    password_hash=hashed_password,
+                    role=models.RoleEnum.owner
+                )
+                db.add(initial_user)
+                db.commit()
+                print(f"Initial admin user '{email}' created successfully.")
+            else:
+                print("ADMIN_EMAIL or ADMIN_PASSWORD not set. Skipping initial user creation.")
+    finally:
+        db.close()
+
+@scheduler.scheduled_job('interval', days=1)
+async def scheduled_cleanup():
+    db = database.SessionLocal()
+    try:
+        jobs.cleanup_inactive_devices(db=db)
+    finally:
+        db.close()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    print("--- Running application startup logic ---")
+    if os.getenv("TESTING") != "1":
+        create_initial_admin_user()
+        s3_client.create_bucket_if_not_exists()
+        scheduler.start()
+    yield
+    # Shutdown logic
+    print("--- Running application shutdown logic ---")
+    if os.getenv("TESTING") != "1" and scheduler.running:
+        scheduler.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -55,50 +102,3 @@ def db_health_check(db: Session = Depends(database.get_db)):
         return {"status": "ok"}
     except Exception as e:
         return {"status": "error", "detail": str(e)}
-
-
-scheduler = AsyncIOScheduler()
-
-@scheduler.scheduled_job('interval', days=1)
-async def scheduled_cleanup():
-    db = database.SessionLocal()
-    try:
-        jobs.cleanup_inactive_devices(db=db)
-    finally:
-        db.close()
-
-def create_initial_admin_user():
-    db = database.SessionLocal()
-    try:
-        # Check if any admin users exist
-        if db.query(models.AdminUser).count() == 0:
-            email = os.getenv("ADMIN_EMAIL")
-            password = os.getenv("ADMIN_PASSWORD")
-            if email and password:
-                hashed_password = auth.get_password_hash(password)
-                initial_user = models.AdminUser(
-                    email=email,
-                    password_hash=hashed_password,
-                    role=models.RoleEnum.owner
-                )
-                db.add(initial_user)
-                db.commit()
-                print(f"Initial admin user '{email}' created successfully.")
-            else:
-                print("ADMIN_EMAIL or ADMIN_PASSWORD not set. Skipping initial user creation.")
-    finally:
-        db.close()
-
-
-@app.on_event("startup")
-async def startup_event():
-    print("--- Running startup event ---")
-    if os.getenv("TESTING") != "1":
-        create_initial_admin_user()
-        s3_client.create_bucket_if_not_exists()
-        scheduler.start()
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    if os.getenv("TESTING") != "1":
-        scheduler.shutdown()
