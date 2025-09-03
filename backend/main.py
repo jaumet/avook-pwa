@@ -20,10 +20,18 @@ scheduler = AsyncIOScheduler()
 def create_initial_admin_user():
     db = database.SessionLocal()
     try:
-        # Check if any admin users exist
-        if db.query(models.AdminUser).count() == 0:
+        print("--- Checking for initial admin user ---")
+        user_count = db.query(models.AdminUser).count()
+        print(f"--- Found {user_count} existing admin users ---")
+
+        if user_count == 0:
+            print("--- No admin users found, attempting to create one. ---")
             email = os.getenv("ADMIN_EMAIL")
             password = os.getenv("ADMIN_PASSWORD")
+
+            print(f"--- Read ADMIN_EMAIL from env: {'present' if email else 'NOT PRESENT'}")
+            print(f"--- Read ADMIN_PASSWORD from env: {'present' if password else 'NOT PRESENT'}")
+
             if email and password:
                 hashed_password = auth.get_password_hash(password)
                 initial_user = models.AdminUser(
@@ -33,9 +41,9 @@ def create_initial_admin_user():
                 )
                 db.add(initial_user)
                 db.commit()
-                print(f"Initial admin user '{email}' created successfully.")
+                print(f"--- Initial admin user '{email}' created successfully. ---")
             else:
-                print("ADMIN_EMAIL or ADMIN_PASSWORD not set. Skipping initial user creation.")
+                print("--- ADMIN_EMAIL or ADMIN_PASSWORD not set. Skipping initial user creation. ---")
     finally:
         db.close()
 
