@@ -44,5 +44,13 @@ def set_cors_policy():
             'ExposeHeaders': []
         }]
     }
-    s3_client.put_bucket_cors(Bucket=S3_BUCKET, CORSConfiguration=cors_configuration)
-    print(f"CORS policy set for bucket '{S3_BUCKET}'.")
+    try:
+        s3_client.put_bucket_cors(Bucket=S3_BUCKET, CORSConfiguration=cors_configuration)
+        print(f"CORS policy set for bucket '{S3_BUCKET}'.")
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NotImplemented':
+            print(f"WARN: Could not set CORS policy on bucket '{S3_BUCKET}'. This might be a limitation of the local S3 server (MinIO). Continuing without setting CORS.")
+        else:
+            # For any other exception, re-raise it.
+            print("Error setting CORS policy.")
+            raise

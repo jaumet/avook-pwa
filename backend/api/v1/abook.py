@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from main import limiter
 
 import schemas
 import models
@@ -14,7 +15,8 @@ router = APIRouter(
 )
 
 @router.get("/{qr}/play-auth", response_model=schemas.PlayAuthResponse)
-def play_auth(qr: str, device_id: str, db: Session = Depends(database.get_db)):
+@limiter.limit("20/minute")
+def play_auth(request: Request, qr: str, device_id: str, db: Session = Depends(database.get_db)):
     # 1. Find the QR code
     qr_code = db.query(models.QRCode).filter(models.QRCode.qr == qr).first()
     if not qr_code:
@@ -86,7 +88,8 @@ def play_auth(qr: str, device_id: str, db: Session = Depends(database.get_db)):
 
 
 @router.post("/{qr}/progress", status_code=204)
-def update_progress(qr: str, progress_in: schemas.ProgressRequest, db: Session = Depends(database.get_db)):
+@limiter.limit("20/minute")
+def update_progress(request: Request, qr: str, progress_in: schemas.ProgressRequest, db: Session = Depends(database.get_db)):
     # 1. Find the QR code
     qr_code = db.query(models.QRCode).filter(models.QRCode.qr == qr).first()
     if not qr_code:
@@ -126,7 +129,8 @@ def update_progress(qr: str, progress_in: schemas.ProgressRequest, db: Session =
 
 
 @router.post("/{qr}/recover", status_code=204)
-def recover_device_slot(qr: str, recover_in: schemas.RecoverRequest, db: Session = Depends(database.get_db)):
+@limiter.limit("20/minute")
+def recover_device_slot(request: Request, qr: str, recover_in: schemas.RecoverRequest, db: Session = Depends(database.get_db)):
     # 1. Find the QR code
     qr_code = db.query(models.QRCode).filter(models.QRCode.qr == qr).first()
     if not qr_code:

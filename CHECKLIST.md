@@ -22,6 +22,7 @@
 - [x] `.env.example` per `frontend`, `backend`, `infra`.
 - [x] Docker Compose amb serveis (sense codi d’app encara).
 - [x] Health checks bàsics per serveis.
+- [x] Mecanisme per crear usuari admin inicial via ENV.
 **DoD:** `docker compose up` aixeca tots els contenidors i responen ping/health.
 
 ## 🗃️ Fase B — Model de dades (PostgreSQL)
@@ -60,23 +61,23 @@
 
 ## 🛠️ Fase F — API d’Administració (backend)
 - [x] `/admin/login` (sessió o JWT).
-- [ ] CRUD **admin_users** (només `owner` pot crear/editors).
-- [ ] CRUD **titles** i **products**.
-- [ ] **Batches/QR**: generar N QR + PIN (hash), export CSV (només en generació).
-- [ ] **QR detall**: estat, dispositius vinculats, alliberar/reset.
+- [x] CRUD **admin_users** (només `owner` pot crear/editors).
+- [x] CRUD **titles** i **products**.
+- [x] **Batches/QR**: generar N QR + PIN (hash), export CSV (només en generació).
+- [x] **QR detall**: estat, dispositius vinculats, alliberar/reset.
 **DoD:** admins poden crear catàleg, lots i gestionar QR/dispositius.
 
 ## 🖥️ Fase G — Panell d’Administració (frontend)
-- [ ] Login admin.
-- [ ] Vistes: Títols, Productes, Lots/QR, Detall QR, Usuaris admins.
-- [ ] Pujar portada i vincular manifest `book_id`.
+- [x] Login admin.
+- [x] Vistes: Títols, Productes, Lots/QR, Detall QR, Usuaris admins.
+- [x] Pujar portada i vincular manifest `book_id`.
 **DoD:** flux complet d’admin operatiu.
 
 ## 🔐 Fase H — Operacions i seguretat
-- [ ] Rate limiting suau en `/abook/*`.
-- [ ] Logs API i proxy; mètriques bàsiques.
-- [ ] Backups de DB i versions de manifests.
-- [ ] Pàgina legal (RGPD: no recollim dades personals d’usuaris finals).
+- [x] Rate limiting suau en `/abook/*`.
+- [x] Logs API i proxy; mètriques bàsiques.
+- [x] Backups de DB i versions de manifests.
+- [x] Pàgina legal (RGPD: no recollim dades personals d’usuaris finals).
 **DoD:** proves d’estrès locals i simulació de reinici recuperable.
 
 ## 🚀 Fase I — Alpha interna
