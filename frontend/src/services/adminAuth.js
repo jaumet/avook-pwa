@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import axios from 'axios';
+import api from './api';
 
 const useAdminAuthStore = create(
   persist(
@@ -8,10 +8,11 @@ const useAdminAuthStore = create(
       token: null,
       user: null,
       login: async (email, password) => {
-        const response = await axios.post('/api/v1/admin/login', {
-          username: email,
-          password: password,
-        }, {
+        const params = new URLSearchParams();
+        params.append('username', email);
+        params.append('password', password);
+
+        const response = await api.post('/api/v1/admin/login', params, {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
         const { access_token } = response.data;
