@@ -74,10 +74,10 @@
 **DoD:** flux complet d’admin operatiu.
 
 ## 🔐 Fase H — Operacions i seguretat
-- [ ] Rate limiting suau en `/abook/*`.
-- [ ] Logs API i proxy; mètriques bàsiques.
-- [ ] Backups de DB i versions de manifests.
-- [ ] Pàgina legal (RGPD: no recollim dades personals d’usuaris finals).
+- [x] Rate limiting suau en `/abook/*`.
+- [x] Logs API i proxy; mètriques bàsiques.
+- [x] Backups de DB i versions de manifests.
+- [x] Pàgina legal (RGPD: no recollim dades personals d’usuaris finals).
 **DoD:** proves d’estrès locals i simulació de reinici recuperable.
 
 ## 🚀 Fase I — Alpha interna

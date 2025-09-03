@@ -13,6 +13,7 @@ import TitlesPage from './pages/admin/TitlesPage';
 import ProductsPage from './pages/admin/ProductsPage';
 import BatchesPage from './pages/admin/BatchesPage';
 import QRDetailPage from './pages/admin/QRDetailPage';
+import LegalPage from './pages/LegalPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/scan" element={<ScannerPage />} />
         <Route path="/play/:qr" element={<PlayerPage />} />
         <Route path="/recover" element={<RecoverPinPage />} />
+        <Route path="/legal" element={<LegalPage />} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
