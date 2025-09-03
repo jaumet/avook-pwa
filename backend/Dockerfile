@@ -22,5 +22,4 @@ EXPOSE 8000
 # Set the entrypoint script
 ENTRYPOINT ["/app/entrypoint.sh"]
 
-# Run the app when the container launches
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# The command is now hardcoded in entrypoint.sh, so CMD is not needed.
