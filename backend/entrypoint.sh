@@ -6,8 +6,9 @@ set -e
 # For now, this is enough to avoid race conditions on startup
 sleep 5
 
-# Run alembic migrations
+echo "--- Running Alembic migrations ---"
 alembic upgrade head
+echo "--- Alembic migrations finished ---"
 
 # Start the application
-exec "$@"
+exec python run.py
