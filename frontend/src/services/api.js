@@ -19,4 +19,20 @@ api.interceptors.request.use(
   }
 );
 
+// Response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Token is invalid or expired, log the user out
+      useAdminAuthStore.getState().logout();
+      // Redirect to login page
+      if (window.location.pathname !== '/admin/login') {
+        window.location.href = '/admin/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

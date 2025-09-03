@@ -18,6 +18,7 @@ import LegalPage from './pages/LegalPage';
 function App() {
   return (
     <Router>
+      <AuthVerify />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
