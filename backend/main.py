@@ -92,6 +92,7 @@ def create_initial_admin_user():
 
 @app.on_event("startup")
 async def startup_event():
+    print("--- Running startup event ---")
     if os.getenv("TESTING") != "1":
         create_initial_admin_user()
         s3_client.create_bucket_if_not_exists()
