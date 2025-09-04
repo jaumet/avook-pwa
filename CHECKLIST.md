@@ -3,19 +3,19 @@
 > **Objectiu:** PWA en React + API FastAPI + PostgreSQL + S3/MinIO, tot al mateix repositori i aixecat amb Docker Compose.
 
 ## 📁 Estructura del repo
-- [ ] `/frontend/` — PWA (React).
-- [ ] `/backend/` — API (FastAPI).
-- [ ] `/infra/` — compose, init, scripts locals.
-- [ ] `/docs/` — arxiu tècnic, fluxos, UX copies.
-- [ ] `README.md` — arrencada en local amb Docker.
-- [ ] `CHECKLIST.md` — aquest fitxer.
+- [x] `/frontend/` — PWA (React).
+- [x] `/backend/` — API (FastAPI).
+- [x] `/infra/` — compose, init, scripts locals.
+- [x] `/docs/` — arxiu tècnic, fluxos, UX copies.
+- [x] `README.md` — arrencada en local amb Docker.
+- [x] `CHECKLIST.md` — aquest fitxer.
 
 ## 🔧 Serveis (ports locals suggerits)
-- [ ] **frontend** (5173) — parla amb `http://api:8000`.
-- [ ] **api** (8000) — FastAPI.
-- [ ] **db** (5432) — PostgreSQL (volum de dades).
-- [ ] **object-store** (9000/9001) — MinIO S3.
-- [ ] **proxy** (8080) — NGINX per HLS/CORS/Range.
+- [x] **frontend** (5173) — parla amb `http://api:8000`.
+- [x] **api** (8000) — FastAPI.
+- [x] **db** (5432) — PostgreSQL (volum de dades).
+- [x] **object-store** (9000/9001) — MinIO S3.
+- [x] **proxy** (8080) — NGINX per HLS/CORS/Range.
 
 ## 🌱 Fase A — Bootstrap del monorepo
 - [x] Crear carpetes i fitxers base (README, CHECKLIST, docs).
