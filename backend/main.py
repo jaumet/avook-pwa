@@ -62,7 +62,8 @@ async def lifespan(app: FastAPI):
     if os.getenv("TESTING") != "1":
         create_initial_admin_user()
         s3_client.create_bucket_if_not_exists()
-        scheduler.start()
+        # scheduler.start() # Temporarily disabled for debugging
+        print("--- Job scheduler is temporarily disabled for debugging ---")
     yield
     # Shutdown logic
     print("--- Running application shutdown logic ---")
