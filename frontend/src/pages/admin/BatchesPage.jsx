@@ -2,16 +2,54 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 
-function BatchRow({ batch }) {
+function BatchRow({ batch, onUploadSuccess }) {
   const [qrcodes, setQrcodes] = useState([]);
   const [showQRs, setShowQRs] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState('');
+
+  const fetchQRs = async () => {
+    const response = await api.get(`/api/v1/admin/batches/${batch.id}/qrcodes`);
+    setQrcodes(response.data);
+  };
 
   const toggleShowQRs = async () => {
     if (!showQRs) {
-      const response = await api.get(`/api/v1/admin/batches/${batch.id}/qrcodes`);
-      setQrcodes(response.data);
+      await fetchQRs();
     }
     setShowQRs(!showQRs);
+  };
+
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+    setUploadStatus('');
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setUploadStatus('Please select a file first.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    setUploadStatus('Uploading...');
+    try {
+      await api.post(`/api/v1/admin/batches/${batch.id}/upload-qrs`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setUploadStatus('Upload successful!');
+      setSelectedFile(null);
+      if (showQRs) {
+        await fetchQRs();
+      }
+      onUploadSuccess();
+    } catch (err) {
+      setUploadStatus('Upload failed: ' + (err.response?.data?.detail || 'Unknown error'));
+    }
   };
 
   return (
@@ -21,7 +59,14 @@ function BatchRow({ batch }) {
         <td>{batch.name}</td>
         <td>{batch.size}</td>
         <td>{batch.printed_at ? new Date(batch.printed_at).toLocaleString() : 'N/A'}</td>
-        <td><button onClick={toggleShowQRs}>{showQRs ? 'Hide' : 'Show'} QRs</button></td>
+        <td>
+          <button onClick={toggleShowQRs}>{showQRs ? 'Hide' : 'Show'} QRs</button>
+          <div>
+            <input type="file" accept=".zip" onChange={handleFileChange} />
+            <button onClick={handleUpload} disabled={!selectedFile}>Upload ZIP</button>
+            {uploadStatus && <p>{uploadStatus}</p>}
+          </div>
+        </td>
       </tr>
       {showQRs && (
         <tr>
@@ -47,12 +92,10 @@ function BatchesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Form state for creating a new batch
   const [batchName, setBatchName] = useState('');
   const [quantity, setQuantity] = useState(10);
 
   useEffect(() => {
-    // Fetch all products for the selection dropdown
     const fetchProducts = async () => {
       try {
         const response = await api.get('/api/v1/admin/products');
@@ -64,25 +107,25 @@ function BatchesPage() {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    // Fetch batches when a product is selected
+  const fetchBatches = React.useCallback(async () => {
     if (!selectedProductId) {
       setBatches([]);
       return;
     }
-    const fetchBatches = async () => {
-      setLoading(true);
-      try {
-        const response = await api.get(`/api/v1/admin/products/${selectedProductId}/batches`);
-        setBatches(response.data);
-      } catch (err) {
-        setError('Failed to fetch batches.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBatches();
+    setLoading(true);
+    try {
+      const response = await api.get(`/api/v1/admin/products/${selectedProductId}/batches`);
+      setBatches(response.data);
+    } catch (err) {
+      setError('Failed to fetch batches.');
+    } finally {
+      setLoading(false);
+    }
   }, [selectedProductId]);
+
+  useEffect(() => {
+    fetchBatches();
+  }, [fetchBatches]);
 
   const handleCreateBatch = async (e) => {
     e.preventDefault();
@@ -91,27 +134,16 @@ function BatchesPage() {
       return;
     }
     try {
-      const response = await api.post(
+      await api.post(
         `/api/v1/admin/products/${selectedProductId}/batches`,
-        { name: batchName, quantity: quantity },
-        { responseType: 'blob' } // Important to handle the file download
+        { name: batchName, size: quantity }
       );
-      // Create a blob from the response and trigger download
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `qrcodes_batch_${new Date().getTime()}.csv`;
-      link.click();
-
-      // Clear form and refetch batches
       setBatchName('');
       setQuantity(10);
-      // Refetch batches for the current product
-      const refetchResponse = await api.get(`/api/v1/admin/products/${selectedProductId}/batches`);
-      setBatches(refetchResponse.data);
-
+      await fetchBatches();
+      setError('');
     } catch (err) {
-      setError('Failed to create batch.');
+      setError('Failed to create batch. ' + (err.response?.data?.detail || ''));
     }
   };
 
@@ -130,7 +162,7 @@ function BatchesPage() {
             <h3>Create New Batch for Selected Product</h3>
             <input type="text" value={batchName} onChange={e => setBatchName(e.target.value)} placeholder="Batch Name" required />
             <input type="number" value={quantity} onChange={e => setQuantity(parseInt(e.target.value, 10))} placeholder="Quantity" min="1" required />
-            <button type="submit">Generate QR Codes (CSV)</button>
+            <button type="submit">Create Batch</button>
           </form>
 
           <h2>Existing Batches</h2>
@@ -142,12 +174,12 @@ function BatchesPage() {
                 <th>Name</th>
                 <th>Size</th>
                 <th>Printed At</th>
-                <th>QR Codes</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {batches.map(batch => (
-                <BatchRow key={batch.id} batch={batch} />
+                <BatchRow key={batch.id} batch={batch} onUploadSuccess={fetchBatches} />
               ))}
             </tbody>
           </table>

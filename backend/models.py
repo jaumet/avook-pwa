@@ -73,6 +73,7 @@ class QRCode(Base):
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     qr = Column(String, unique=True, nullable=False, index=True)
     owner_pin_hash = Column(String)
+    image_path = Column(String, nullable=True)
     batch_id = Column(Integer, ForeignKey("batches.id"))
     state = Column(SQLAlchemyEnum(QRStateEnum), nullable=False, default=QRStateEnum.new)
     created_at = Column(DateTime, server_default=func.now())
