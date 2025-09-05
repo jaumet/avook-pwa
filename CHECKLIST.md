@@ -63,7 +63,7 @@
 - [x] `/admin/login` (sessió o JWT).
 - [x] CRUD **admin_users** (només `owner` pot crear/editors).
 - [x] CRUD **titles** i **products**.
-- [x] **Batches/QR**: generar N QR + PIN (hash), export CSV (només en generació).
+- [x] **Batches/QR**: crear lots i pujar un ZIP amb els codis QR (imatge + JSON) per cada lot.
 - [x] **QR detall**: estat, dispositius vinculats, alliberar/reset.
 **DoD:** admins poden crear catàleg, lots i gestionar QR/dispositius.
 

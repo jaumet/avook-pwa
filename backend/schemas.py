@@ -79,17 +79,14 @@ class Product(ProductBase):
 
 
 # --- Batch Schemas ---
-class BatchBase(BaseModel):
-    product_id: int
+class BatchCreate(BaseModel):
     name: str
     size: int
     notes: Optional[str] = None
 
-class BatchCreate(BatchBase):
-    pass
-
-class Batch(BatchBase):
+class Batch(BatchCreate):
     id: int
+    product_id: int
     printed_at: Optional[datetime] = None
 
     class Config:
@@ -124,6 +121,6 @@ class QRCodeDetails(QRCode):
     device_bindings: List[DeviceBinding] = []
 
 
-class GenerateQRCodesRequest(BaseModel):
-    quantity: int = Field(..., gt=0, description="Number of QR codes to generate")
-    name: str = Field(..., description="Name for the batch")
+class QRCodeMetadata(BaseModel):
+    qr: str
+    pin: str

@@ -238,67 +238,114 @@ def read_product_batches(product_id: int, db: Session = Depends(database.get_db)
 
     return db_product.batches
 
-@router.post("/products/{product_id}/batches", response_class=StreamingResponse)
-def create_batch_and_generate_qr_codes(
+import zipfile
+import json
+
+@router.post("/products/{product_id}/batches", response_model=schemas.Batch)
+def create_batch(
     product_id: int,
-    request: schemas.GenerateQRCodesRequest,
+    batch_create: schemas.BatchCreate,
     db: Session = Depends(database.get_db)
 ):
     """
-    Create a new batch for a product and generate N QR codes with PINs.
-    Returns a CSV file with the QR codes and plain-text PINs for one-time download.
+    Create a new batch for a product.
     """
-    # Verify product exists
     db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not db_product:
         raise HTTPException(status_code=404, detail=f"Product with id {product_id} not found")
 
-    # Create the batch
     db_batch = models.Batch(
         product_id=product_id,
-        name=request.name,
-        size=request.quantity
+        name=batch_create.name,
+        size=batch_create.size,
+        notes=batch_create.notes
     )
     db.add(db_batch)
     db.commit()
     db.refresh(db_batch)
+    return db_batch
+
+
+@router.post("/batches/{batch_id}/upload-qrs", status_code=status.HTTP_201_CREATED)
+async def upload_qrs_for_batch(
+    batch_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(database.get_db)
+):
+    """
+    Upload a zip file containing QR code PNGs and JSON metadata for a batch.
+    The zip file should contain pairs of files like `my-qr-1.png`, `my-qr-1.json`.
+    """
+    db_batch = db.query(models.Batch).filter(models.Batch.id == batch_id).first()
+    if not db_batch:
+        raise HTTPException(status_code=404, detail=f"Batch with id {batch_id} not found")
+
+    if not file.filename.endswith('.zip'):
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a .zip file.")
+
+    contents = await file.read()
+    zip_buffer = io.BytesIO(contents)
 
     qr_codes_to_create = []
-    qr_pin_pairs = []
 
-    for _ in range(request.quantity):
-        qr_code_str = str(uuid.uuid4())
-        # Generate a 4-digit PIN
-        pin = str(secrets.randbelow(10000)).zfill(4)
-        pin_hash = auth.get_password_hash(pin)
+    with zipfile.ZipFile(zip_buffer, 'r') as zip_ref:
+        filenames = zip_ref.namelist()
+        json_files = {f for f in filenames if f.endswith('.json')}
+        png_files = {f for f in filenames if f.endswith('.png')}
 
-        qr_pin_pairs.append({"qr": qr_code_str, "pin": pin})
+        for json_filename in json_files:
+            base_name = json_filename.rsplit('.', 1)[0]
+            png_filename = f"{base_name}.png"
 
-        db_qr_code = models.QRCode(
-            product_id=product_id,
-            qr=qr_code_str,
-            owner_pin_hash=pin_hash,
-            batch_id=db_batch.id,
-            state=models.QRStateEnum.new,
-        )
-        qr_codes_to_create.append(db_qr_code)
+            if png_filename not in png_files:
+                continue
+
+            # Read and parse JSON metadata
+            with zip_ref.open(json_filename) as json_file:
+                try:
+                    metadata = schemas.QRCodeMetadata.parse_raw(json_file.read())
+                except Exception:
+                    # Skip if JSON is invalid
+                    continue
+
+            # Check for QR code uniqueness
+            existing_qr = db.query(models.QRCode).filter(models.QRCode.qr == metadata.qr).first()
+            if existing_qr:
+                # Or decide to raise an error
+                continue
+
+            pin_hash = auth.get_password_hash(metadata.pin)
+            s3_key = f"qrcodes/{batch_id}/{metadata.qr}.png"
+
+            # Upload PNG to S3
+            with zip_ref.open(png_filename) as png_file:
+                try:
+                    s3_client.s3_client.upload_fileobj(
+                        png_file,
+                        s3_client.S3_BUCKET,
+                        s3_key,
+                        ExtraArgs={'ContentType': 'image/png'}
+                    )
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail=f"Failed to upload {png_filename} to S3: {str(e)}")
+
+            db_qr_code = models.QRCode(
+                product_id=db_batch.product_id,
+                qr=metadata.qr,
+                owner_pin_hash=pin_hash,
+                batch_id=batch_id,
+                image_path=s3_key,
+                state=models.QRStateEnum.new,
+            )
+            qr_codes_to_create.append(db_qr_code)
+
+    if not qr_codes_to_create:
+        raise HTTPException(status_code=400, detail="No valid QR code files found in the zip archive.")
 
     db.bulk_save_objects(qr_codes_to_create)
     db.commit()
 
-    # Create CSV response
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["qr_code", "pin"])
-    for pair in qr_pin_pairs:
-        writer.writerow([pair["qr"], pair["pin"]])
-
-    output.seek(0)
-
-    response = StreamingResponse(iter([output.getvalue()]), media_type="text/csv")
-    response.headers["Content-Disposition"] = f"attachment; filename=qrcodes_batch_{db_batch.id}.csv"
-
-    return response
+    return {"message": f"Successfully uploaded and created {len(qr_codes_to_create)} QR codes for batch {batch_id}."}
 
 @router.get("/batches/{batch_id}/qrcodes", response_model=List[schemas.QRCode])
 def read_batch_qr_codes(batch_id: int, db: Session = Depends(database.get_db)):
