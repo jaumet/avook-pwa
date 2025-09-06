@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
 function QRDetailPage() {
   const { qr } = useParams();
+  const navigate = useNavigate();
   const [qrDetails, setQrDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -44,6 +45,9 @@ function QRDetailPage() {
 
   return (
     <div>
+      <button onClick={() => navigate(-1)} style={{ all: 'unset', cursor: 'pointer', marginBottom: '1rem', display: 'inline-block' }}>
+        &larr; Back to Batches
+      </button>
       <h1>QR Code Details: {qrDetails.qr}</h1>
       <p><strong>State:</strong> {qrDetails.state}</p>
       <p><strong>Product ID:</strong> {qrDetails.product_id}</p>
