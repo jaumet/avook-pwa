@@ -276,7 +276,7 @@ async def upload_qrs_for_batch(
     """
     Upload a zip file containing QR code PNGs and JSON metadata for a batch.
     The zip file should contain pairs of files named like:
-    `YYYY-MM-DD--<unique_code>.json` and `YYYY-MM-DD--<unique_code>.png`
+    `YYYY-MM-DD--<qr_code>.json` and `YYYY-MM-DD--<qr_code>.png`
     """
     db_batch = db.query(models.Batch).filter(models.Batch.id == batch_id).first()
     if not db_batch:
@@ -309,7 +309,7 @@ async def upload_qrs_for_batch(
 
             # Construct the expected PNG filename from metadata
             date_str = metadata.date_generation.strftime('%Y-%m-%d')
-            expected_png_basename = f"{date_str}--{metadata.unique_code}.png"
+            expected_png_basename = f"{date_str}--{metadata.qr_code}.png"
 
             if expected_png_basename not in png_basenames:
                 print(f"No matching PNG found for {json_filename}. Expected: {expected_png_basename}")
@@ -318,14 +318,14 @@ async def upload_qrs_for_batch(
             png_filename = png_basenames[expected_png_basename]
 
             # Check for QR code uniqueness
-            existing_qr = db.query(models.QRCode).filter(models.QRCode.qr == metadata.unique_code).first()
+            existing_qr = db.query(models.QRCode).filter(models.QRCode.qr == metadata.qr_code).first()
             if existing_qr:
                 # Or decide to raise an error
-                print(f"QR code {metadata.unique_code} already exists in the database. Skipping.")
+                print(f"QR code {metadata.qr_code} already exists in the database. Skipping.")
                 continue
 
             pin_hash = auth.get_password_hash(str(metadata.pin))
-            s3_key = f"qrcodes/{batch_id}/{metadata.unique_code}.png"
+            s3_key = f"qrcodes/{batch_id}/{metadata.qr_code}.png"
 
             # Upload PNG to S3
             with zip_ref.open(png_filename) as png_file:
@@ -341,7 +341,7 @@ async def upload_qrs_for_batch(
 
             db_qr_code = models.QRCode(
                 product_id=db_batch.product_id,
-                qr=metadata.unique_code,
+                qr=metadata.qr_code,
                 owner_pin_hash=pin_hash,
                 batch_id=batch_id,
                 image_path=s3_key,

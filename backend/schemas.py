@@ -122,9 +122,6 @@ class QRCodeDetails(QRCode):
 
 
 class QRCodeMetadata(BaseModel):
-    unique_code: str
+    qr_code: str
     date_generation: datetime
-    pin: str = Field(alias='PIN')
-
-    class Config:
-        allow_population_by_field_name = True
+    pin: str
