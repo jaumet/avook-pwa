@@ -103,6 +103,7 @@ class QRCode(QRCodeBase):
     product_id: int
     batch_id: Optional[int] = None
     created_at: datetime
+    image_path: Optional[str] = None
 
     class Config:
         orm_mode = True

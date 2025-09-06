@@ -36,12 +36,12 @@ function BatchRow({ batch, onUploadSuccess }) {
 
     setUploadStatus('Uploading...');
     try {
-      await api.post(`/api/v1/admin/batches/${batch.id}/upload-qrs`, formData, {
+      const response = await api.post(`/api/v1/admin/batches/${batch.id}/upload-qrs`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      setUploadStatus('Upload successful!');
+      setUploadStatus(response.data.message || 'Upload successful!');
       setSelectedFile(null);
       if (showQRs) {
         await fetchQRs();
@@ -71,13 +71,37 @@ function BatchRow({ batch, onUploadSuccess }) {
       {showQRs && (
         <tr>
           <td colSpan="5">
-            <ul>
-              {qrcodes.map(qr => (
-                <li key={qr.id}>
-                  <Link to={`/admin/qrcodes/${qr.qr}`}>{qr.qr}</Link> ({qr.state})
-                </li>
-              ))}
-            </ul>
+            <h4>QR Codes for Batch {batch.id}</h4>
+            <table style={{ width: '100%', marginTop: '1rem' }}>
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>QR Code</th>
+                  <th>State</th>
+                  <th>Created At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {qrcodes.map(qr => {
+                  const imageUrl = qr.image_path ? `${import.meta.env.VITE_S3_PUBLIC_URL}/${qr.image_path}` : null;
+                  return (
+                    <tr key={qr.id}>
+                      <td>
+                        {imageUrl ?
+                          <img src={imageUrl} alt={qr.qr} style={{ width: '100px', height: '100px' }} /> :
+                          'No Image'
+                        }
+                      </td>
+                      <td>
+                        <Link to={`/admin/qrcodes/${qr.qr}`}>{qr.qr}</Link>
+                      </td>
+                      <td>{qr.state}</td>
+                      <td>{new Date(qr.created_at).toLocaleString()}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </td>
         </tr>
       )}
