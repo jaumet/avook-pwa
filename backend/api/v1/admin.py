@@ -337,7 +337,7 @@ async def upload_qrs_for_batch(
                         png_file,
                         s3_client.S3_BUCKET,
                         s3_key,
-                        ExtraArgs={'ContentType': 'image/png'}
+                        ExtraArgs={'ContentType': 'image/png', 'ACL': 'public-read'}
                     )
                 except Exception as e:
                     raise HTTPException(status_code=500, detail=f"Failed to upload {png_filename} to S3: {str(e)}")
