@@ -289,6 +289,8 @@ async def upload_qrs_for_batch(
     zip_buffer = io.BytesIO(contents)
 
     qr_codes_to_create = []
+    duplicates_found = 0
+    valid_pairs_found = 0
 
     with zipfile.ZipFile(zip_buffer, 'r') as zip_ref:
         filenames = zip_ref.namelist()
@@ -315,12 +317,13 @@ async def upload_qrs_for_batch(
                 print(f"No matching PNG found for {json_filename}. Expected: {expected_png_basename}")
                 continue
 
+            valid_pairs_found += 1
             png_filename = png_basenames[expected_png_basename]
 
             # Check for QR code uniqueness
             existing_qr = db.query(models.QRCode).filter(models.QRCode.qr == metadata.qr_code).first()
             if existing_qr:
-                # Or decide to raise an error
+                duplicates_found += 1
                 print(f"QR code {metadata.qr_code} already exists in the database. Skipping.")
                 continue
 
@@ -349,13 +352,14 @@ async def upload_qrs_for_batch(
             )
             qr_codes_to_create.append(db_qr_code)
 
-    if not qr_codes_to_create:
+    if valid_pairs_found == 0:
         raise HTTPException(status_code=400, detail="No valid QR code files found in the zip archive.")
 
-    db.bulk_save_objects(qr_codes_to_create)
-    db.commit()
+    if qr_codes_to_create:
+        db.bulk_save_objects(qr_codes_to_create)
+        db.commit()
 
-    return {"message": f"Successfully uploaded and created {len(qr_codes_to_create)} QR codes for batch {batch_id}."}
+    return {"message": f"Upload processed. Created {len(qr_codes_to_create)} new QR codes. Skipped {duplicates_found} duplicates."}
 
 @router.get("/batches/{batch_id}/qrcodes", response_model=List[schemas.QRCode])
 def read_batch_qr_codes(batch_id: int, db: Session = Depends(database.get_db)):
