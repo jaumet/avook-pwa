@@ -71,9 +71,11 @@ services:
       - MC_HOST_myminio=http://minioadmin:minioadmin@object-store:9000
     entrypoint: >
       /bin/sh -c "
+      until /usr/bin/mc ls myminio >/dev/null 2>&1; do sleep 1; done;
       /usr/bin/mc mb myminio/audiovook-test --ignore-existing;
-      /usr/bin/mc policy set download myminio/audiovook-test;
+      /usr/bin/mc anonymous set download myminio/audiovook-test;
       "
+    restart: on-failure
 
   proxy:
     image: nginx:latest
