@@ -6,7 +6,7 @@ server {
     access_log /dev/stdout;
     error_log /dev/stderr;
 
-    # This will proxy all requests to MinIO
+    # This will proxy all requests to the local S3 service
     location / {
         proxy_pass http://object-store:9000;
         proxy_set_header Host $host;
