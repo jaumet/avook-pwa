@@ -1,6 +1,6 @@
 # Backing Up Your Audiovook Instance
 
-This guide provides simple instructions for manually backing up the critical data of your Audiovook instance: the PostgreSQL database and the S3 object store (MinIO).
+This guide provides simple instructions for manually backing up the critical data of your Audiovook instance: the PostgreSQL database and the local S3 object store provided by LocalStack.
 
 It is recommended to perform these backups regularly.
 
@@ -21,24 +21,17 @@ docker compose -f infra/docker-compose.yml exec -T db pg_dump -U user -d avook >
 
 To restore from this backup, you would typically use the `psql` command.
 
-## 2. Backing Up the S3 Bucket (MinIO)
+## 2. Backing Up the S3 Bucket
 
-The S3 bucket contains all the media files, such as audiobook chapters (HLS segments) and cover images. We will use the MinIO Client (`mc`) to mirror the contents of the bucket to a local directory.
+The S3 bucket contains all the media files, such as audiobook chapters (HLS segments) and cover images. We will use the AWS CLI to sync the contents of the bucket to a local directory.
 
-**Note:** This requires you to have the `mc` client installed on your local machine. If you don't, you can find installation instructions here: [https://min.io/docs/minio/linux/reference/minio-client.html](https://min.io/docs/minio/linux/reference/minio-client.html)
+**Note:** This requires the `aws` CLI installed on your local machine. Installation instructions can be found here: [https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
-**Step 1: Configure a local alias for your MinIO instance**
-This only needs to be done once.
-```bash
-mc alias set local-minio http://localhost:9000 minioadmin minioadmin
-```
-This command tells `mc` how to connect to your local MinIO server running in Docker.
-
-**Step 2: Mirror the bucket**
-This command will copy the entire contents of the `avook` bucket to a local directory named `s3_backup`.
+**Step 1: Sync the bucket**
+This command will copy the entire contents of the `audiovook-test` bucket to a local directory named `s3_backup`.
 ```bash
 # This will create a 's3_backup' directory if it doesn't exist
-mc mirror local-minio/avook ./s3_backup
+aws --endpoint-url http://localhost:9000 s3 sync s3://audiovook-test ./s3_backup
 ```
 
-The `mc mirror` command is idempotent, meaning you can run it repeatedly, and it will only copy new or updated files, making it efficient for regular backups.
+The `aws s3 sync` command is idempotent, meaning you can run it repeatedly and it will only copy new or updated files, making it efficient for regular backups.
