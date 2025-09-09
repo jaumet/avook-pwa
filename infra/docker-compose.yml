@@ -48,6 +48,11 @@ services:
       - POSTGRES_DB=avook
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d avook"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - avook_net
 
