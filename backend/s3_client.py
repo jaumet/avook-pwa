@@ -49,7 +49,7 @@ def set_cors_policy():
         print(f"CORS policy set for bucket '{S3_BUCKET}'.")
     except ClientError as e:
         if e.response['Error']['Code'] == 'NotImplemented':
-            print(f"WARN: Could not set CORS policy on bucket '{S3_BUCKET}'. This might be a limitation of the local S3 server (MinIO). Continuing without setting CORS.")
+            print(f"WARN: Could not set CORS policy on bucket '{S3_BUCKET}'. This might be a limitation of the local S3 server (LocalStack). Continuing without setting CORS.")
         else:
             # For any other exception, re-raise it.
             print("Error setting CORS policy.")
