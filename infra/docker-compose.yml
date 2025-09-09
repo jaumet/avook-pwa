@@ -27,6 +27,7 @@ services:
       - ../backend/.env
     environment:
       S3_ENDPOINT: http://object-store:4566
+      S3_BUCKET: audiovook-test
     depends_on:
       db:
         condition: service_healthy
@@ -78,15 +79,16 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       AWS_DEFAULT_REGION: us-east-1
+      S3_BUCKET: audiovook-test
     volumes:
       - ./s3-cors.json:/tmp/s3-cors.json:ro
       - ./s3-bucket-policy.json:/tmp/s3-bucket-policy.json:ro
     entrypoint: >
       /bin/sh -c "
       until aws --endpoint-url http://object-store:4566 s3 ls >/dev/null 2>&1; do sleep 1; done;
-      aws --endpoint-url http://object-store:4566 s3 mb s3://audiovook-test 2>/dev/null || true;
-      aws --endpoint-url http://object-store:4566 s3api put-bucket-policy --bucket audiovook-test --policy file:///tmp/s3-bucket-policy.json;
-      aws --endpoint-url http://object-store:4566 s3api put-bucket-cors --bucket audiovook-test --cors-configuration file:///tmp/s3-cors.json;
+      aws --endpoint-url http://object-store:4566 s3 mb s3://$${S3_BUCKET} 2>/dev/null || true;
+      aws --endpoint-url http://object-store:4566 s3api put-bucket-policy --bucket $${S3_BUCKET} --policy file:///tmp/s3-bucket-policy.json;
+      aws --endpoint-url http://object-store:4566 s3api put-bucket-cors --bucket $${S3_BUCKET} --cors-configuration file:///tmp/s3-cors.json;
       "
     restart: on-failure
 
