@@ -25,9 +25,13 @@ services:
       - "8000:8000"
     env_file:
       - ../backend/.env
+    environment:
+      S3_ENDPOINT: http://object-store:4566
     depends_on:
-      - db
-      - object-store
+      db:
+        condition: service_healthy
+      s3-setup:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
