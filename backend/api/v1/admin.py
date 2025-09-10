@@ -329,6 +329,7 @@ async def upload_qrs_for_batch(
 
             pin_hash = auth.get_password_hash(str(metadata.pin))
             s3_key = f"qrcodes/{batch_id}/{metadata.qr_code}.png"
+            json_key = f"qrcodes/{batch_id}/{metadata.qr_code}.json"
 
             # Upload PNG to S3
             with zip_ref.open(png_filename) as png_file:
@@ -341,6 +342,18 @@ async def upload_qrs_for_batch(
                     )
                 except Exception as e:
                     raise HTTPException(status_code=500, detail=f"Failed to upload {png_filename} to S3: {str(e)}")
+            # Upload JSON metadata to S3
+            with zip_ref.open(json_filename) as metadata_file:
+                try:
+                    s3_client.s3_client.upload_fileobj(
+                        metadata_file,
+                        s3_client.S3_BUCKET,
+                        json_key,
+                        ExtraArgs={'ContentType': "application/json", 'ACL': "public-read"}
+                    )
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail=f"Failed to upload {json_filename} to S3: {str(e)}")
+
 
             db_qr_code = models.QRCode(
                 product_id=db_batch.product_id,
