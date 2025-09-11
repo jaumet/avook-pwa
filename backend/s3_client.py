@@ -1,4 +1,5 @@
 import os
+import json
 import boto3
 from botocore.client import Config
 from botocore.exceptions import ClientError
@@ -6,7 +7,7 @@ from botocore.exceptions import ClientError
 S3_ENDPOINT = os.getenv("S3_ENDPOINT")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
 S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
-S3_BUCKET = os.getenv("S3_BUCKET")
+S3_BUCKET = os.getenv("S3_BUCKET", "audiovook-test")
 S3_PUBLIC_ENDPOINT = os.getenv("S3_PUBLIC_ENDPOINT")
 
 s3_client = boto3.client(
@@ -27,6 +28,7 @@ def create_bucket_if_not_exists():
             print(f"Bucket '{S3_BUCKET}' not found. Creating it.")
             s3_client.create_bucket(Bucket=S3_BUCKET)
             set_cors_policy()
+            set_public_read_policy()
         else:
             # For any other exception, re-raise it.
             print("Error checking bucket existence.")
@@ -54,3 +56,22 @@ def set_cors_policy():
             # For any other exception, re-raise it.
             print("Error setting CORS policy.")
             raise
+
+def set_public_read_policy():
+    policy = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": "s3:GetObject",
+                "Resource": f"arn:aws:s3:::{S3_BUCKET}/*",
+            }
+        ],
+    }
+    try:
+        s3_client.put_bucket_policy(Bucket=S3_BUCKET, Policy=json.dumps(policy))
+        print(f"Public read policy set for bucket '{S3_BUCKET}'.")
+    except ClientError:
+        print(f"Error setting public policy for bucket '{S3_BUCKET}'.")
+        raise
