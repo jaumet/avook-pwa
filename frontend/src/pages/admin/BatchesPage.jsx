@@ -6,6 +6,7 @@ function BatchRow({ batch, onUploadSuccess }) {
   const [showQRs, setShowQRs] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [metadataKeys, setMetadataKeys] = useState([]);
 
   const fetchQRs = async () => {
     const response = await api.get(`/api/v1/admin/batches/${batch.id}/qrcodes`);
@@ -17,14 +18,19 @@ function BatchRow({ batch, onUploadSuccess }) {
           try {
             const metaRes = await fetch(jsonUrl);
             const meta = await metaRes.json();
-            return { ...qr, pin: meta.pin, jsonUrl };
+            return { ...qr, metadata: meta, jsonUrl };
           } catch {
-            return { ...qr, pin: null, jsonUrl };
+            return { ...qr, metadata: {}, jsonUrl };
           }
         }
-        return { ...qr, pin: null };
+        return { ...qr, metadata: {} };
       })
     );
+    const keys = new Set();
+    enriched.forEach(qr => {
+      Object.keys(qr.metadata || {}).forEach(k => keys.add(k));
+    });
+    setMetadataKeys([...keys]);
     setQrcodes(enriched);
   };
 
@@ -92,7 +98,9 @@ function BatchRow({ batch, onUploadSuccess }) {
                 <tr>
                   <th>Image</th>
                   <th>QR Code</th>
-                  <th>Pin</th>
+                  {metadataKeys.map(key => (
+                    <th key={key}>{key}</th>
+                  ))}
                   <th>State</th>
                   <th>Created At</th>
                 </tr>
@@ -113,7 +121,9 @@ function BatchRow({ batch, onUploadSuccess }) {
                           <a href={qr.jsonUrl} target="_blank" rel="noopener noreferrer">{qr.qr}</a>
                         ) : qr.qr}
                       </td>
-                      <td>{qr.pin ?? 'N/A'}</td>
+                      {metadataKeys.map(key => (
+                        <td key={key}>{qr.metadata[key] ?? 'N/A'}</td>
+                      ))}
                       <td>{qr.state}</td>
                       <td>{new Date(qr.created_at).toLocaleString()}</td>
                     </tr>
