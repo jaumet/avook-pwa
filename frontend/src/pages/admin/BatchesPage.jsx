@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../../services/api';
 
 function BatchRow({ batch, onUploadSuccess }) {
@@ -10,7 +9,23 @@ function BatchRow({ batch, onUploadSuccess }) {
 
   const fetchQRs = async () => {
     const response = await api.get(`/api/v1/admin/batches/${batch.id}/qrcodes`);
-    setQrcodes(response.data);
+    const enriched = await Promise.all(
+      response.data.map(async qr => {
+        if (qr.image_path) {
+          const jsonPath = qr.image_path.replace(/\.png$/, '.json');
+          const jsonUrl = `${import.meta.env.VITE_S3_PUBLIC_URL}/${jsonPath}`;
+          try {
+            const metaRes = await fetch(jsonUrl);
+            const meta = await metaRes.json();
+            return { ...qr, pin: meta.pin, jsonUrl };
+          } catch {
+            return { ...qr, pin: null, jsonUrl };
+          }
+        }
+        return { ...qr, pin: null };
+      })
+    );
+    setQrcodes(enriched);
   };
 
   const toggleShowQRs = async () => {
@@ -77,6 +92,7 @@ function BatchRow({ batch, onUploadSuccess }) {
                 <tr>
                   <th>Image</th>
                   <th>QR Code</th>
+                  <th>Pin</th>
                   <th>State</th>
                   <th>Created At</th>
                 </tr>
@@ -93,8 +109,11 @@ function BatchRow({ batch, onUploadSuccess }) {
                         }
                       </td>
                       <td>
-                        <Link to={`/admin/qrcodes/${qr.qr}`}>{qr.qr}</Link>
+                        {qr.jsonUrl ? (
+                          <a href={qr.jsonUrl} target="_blank" rel="noopener noreferrer">{qr.qr}</a>
+                        ) : qr.qr}
                       </td>
+                      <td>{qr.pin ?? 'N/A'}</td>
                       <td>{qr.state}</td>
                       <td>{new Date(qr.created_at).toLocaleString()}</td>
                     </tr>
@@ -117,7 +136,6 @@ function BatchesPage() {
   const [error, setError] = useState('');
 
   const [batchName, setBatchName] = useState('');
-  const [quantity, setQuantity] = useState(10);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -160,10 +178,9 @@ function BatchesPage() {
     try {
       await api.post(
         `/api/v1/admin/products/${selectedProductId}/batches`,
-        { name: batchName, size: quantity }
+        { name: batchName, size: 0 }
       );
       setBatchName('');
-      setQuantity(10);
       await fetchBatches();
       setError('');
     } catch (err) {
@@ -185,7 +202,6 @@ function BatchesPage() {
           <form onSubmit={handleCreateBatch} style={{ margin: '2rem 0' }}>
             <h3>Create New Batch for Selected Product</h3>
             <input type="text" value={batchName} onChange={e => setBatchName(e.target.value)} placeholder="Batch Name" required />
-            <input type="number" value={quantity} onChange={e => setQuantity(parseInt(e.target.value, 10))} placeholder="Quantity" min="1" required />
             <button type="submit">Create Batch</button>
           </form>
 
