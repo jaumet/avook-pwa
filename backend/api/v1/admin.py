@@ -374,15 +374,6 @@ async def upload_qrs_for_batch(
             qr_codes_to_create.append(db_qr_code)
 
     if valid_pairs_found == 0:
-        if mismatched_ids:
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "Metadata product_id(s) "
-                    + ", ".join(sorted(mismatched_ids))
-                    + f" do not match batch product {db_batch.product_id}."
-                ),
-            )
         raise HTTPException(
             status_code=400,
             detail="No valid QR code files found in the zip archive.",
