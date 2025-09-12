@@ -1,6 +1,6 @@
 # ✅ Roadmap Audiovook — Monorepo `avook-pwa` (Frontend + Backend + Infra)
 
-> **Objectiu:** PWA en React + API FastAPI + PostgreSQL + S3/MinIO, tot al mateix repositori i aixecat amb Docker Compose.
+> **Objectiu:** PWA en React + API FastAPI + PostgreSQL + S3 (LocalStack), tot al mateix repositori i aixecat amb Docker Compose.
 
 ## 📁 Estructura del repo
 - [x] `/frontend/` — PWA (React).
@@ -14,7 +14,7 @@
 - [x] **frontend** (5173) — parla amb `http://api:8000`.
 - [x] **api** (8000) — FastAPI.
 - [x] **db** (5432) — PostgreSQL (volum de dades).
-- [x] **object-store** (9000/9001) — MinIO S3.
+- [x] **object-store** (9000) — LocalStack S3.
 - [x] **proxy** (8080) — NGINX per HLS/CORS/Range.
 
 ## 🌱 Fase A — Bootstrap del monorepo
@@ -43,7 +43,7 @@
 - [x] Job **neteja** dispositius inactius (> X dies).
 **DoD:** proves amb curl/Postman; límit 2 dispositius; resume correcte.
 
-## ☁️ Fase D — S3/MinIO + Proxy (HLS)
+## ☁️ Fase D — S3 + Proxy (HLS)
 - [x] Bucket privat + policies; CORS habilitat.
 - [x] Estructura: `hls/{book_id}/...`, `covers/{book_id}.jpg`, `manifests/{book_id}.json`.
 - [x] Signatura d’URL per `master.m3u8` (TTL curt).
