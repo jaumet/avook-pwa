@@ -300,6 +300,7 @@ async def upload_qrs_for_batch(
         # Create a dictionary for quick lookup of png files by their basename
         png_basenames = {os.path.basename(f): f for f in png_files}
 
+        mismatched_ids = set()
         for json_filename in json_files:
             with zip_ref.open(json_filename) as json_file:
                 try:
@@ -318,6 +319,7 @@ async def upload_qrs_for_batch(
 
             # Ensure the metadata's product_id matches the batch's product
             if str(metadata.product_id) != str(db_batch.product_id):
+                mismatched_ids.add(str(metadata.product_id))
                 print(
                     f"Metadata product_id {metadata.product_id} does not match batch product {db_batch.product_id} for QR {metadata.qr_code}. Skipping."
                 )
@@ -372,7 +374,19 @@ async def upload_qrs_for_batch(
             qr_codes_to_create.append(db_qr_code)
 
     if valid_pairs_found == 0:
-        raise HTTPException(status_code=400, detail="No valid QR code files found in the zip archive.")
+        if mismatched_ids:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Metadata product_id(s) "
+                    + ", ".join(sorted(mismatched_ids))
+                    + f" do not match batch product {db_batch.product_id}."
+                ),
+            )
+        raise HTTPException(
+            status_code=400,
+            detail="No valid QR code files found in the zip archive.",
+        )
 
     if qr_codes_to_create:
         db.bulk_save_objects(qr_codes_to_create)
