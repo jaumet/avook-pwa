@@ -1,58 +1,24 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { getDeviceId } from '../services/device';
 import { Html5Qrcode } from 'html5-qrcode';
 
 const ScannerPage = () => {
   const { t } = useTranslation();
   const [error, setError] = useState('');
-  const [useNative, setUseNative] = useState(false);
-  const navigate = useNavigate();
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const animationRef = useRef(null);
   const html5QrRef = useRef(null);
-  const handleResult = useCallback(async (qrCode) => {
+  const handleResult = useCallback((qrCode) => {
     setError('');
     try {
-      let extractedCode = null;
-      try {
-        const url = new URL(qrCodeUrl);
-        const match = url.pathname.match(/\/code\/([^\/]+)/) || url.pathname.match(/\/share\/([^\/]+)/);
-        if (match && match[1]) {
-          extractedCode = match[1];
-        }
-      } catch (e) {
-        // Not a valid URL, maybe the QR code is the code itself
-        extractedCode = qrCodeUrl;
-      }
-
-      if (!extractedCode) {
-        setError(t('error_invalid_qr'));
-        return;
-      }
-
-      const deviceId = await getDeviceId();
-      const baseFromEnv = import.meta.env.VITE_API_BASE;
-      const fallbackBase = window.location.port === '5173' ? 'http://localhost:8000' : '';
-      const apiBase = (baseFromEnv || fallbackBase).replace(/\/$/, '');
-      const slug = qrCode.trim().split('/').pop();
-      const url = `${apiBase}/api/v1/abook/${slug}/play-auth`;
-      const response = await axios.get(url, {
-        params: { device_id: deviceId }
-      });
-      navigate(`/play/${slug}`, { state: { authData: response.data } });
+      const url = new URL(qrCode);
+      window.location.href = url.toString();
     } catch (err) {
-      console.error('API Error:', err);
-      if (err.response) {
-        setError(err.response.data.detail || t('error_auth_failed'));
-      } else {
-        setError(t('error_network'));
-      }
+      setError(t('error_invalid_qr'));
     }
-  }, [navigate, t]);
+  }, [t]);
 
   useEffect(() => {
     const stop = () => {
