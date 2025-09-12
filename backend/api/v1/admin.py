@@ -309,12 +309,18 @@ async def upload_qrs_for_batch(
                     print(f"Skipping invalid JSON file {json_filename}: {e}")
                     continue
 
-            # Construct the expected PNG filename from metadata
-            date_str = metadata.date_generation.strftime('%Y-%m-%d')
-            expected_png_basename = f"{date_str}--{metadata.qr_code}.png"
+            # Use the provided image name to locate its PNG file
+            expected_png_basename = metadata.qr_image_name
 
             if expected_png_basename not in png_basenames:
                 print(f"No matching PNG found for {json_filename}. Expected: {expected_png_basename}")
+                continue
+
+            # Ensure the metadata's product_id matches the batch's product
+            if str(metadata.product_id) != str(db_batch.product_id):
+                print(
+                    f"Metadata product_id {metadata.product_id} does not match batch product {db_batch.product_id} for QR {metadata.qr_code}. Skipping."
+                )
                 continue
 
             valid_pairs_found += 1
