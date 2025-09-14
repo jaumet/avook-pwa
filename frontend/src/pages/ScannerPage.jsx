@@ -39,7 +39,9 @@ const ScannerPage = () => {
     const startScanner = async () => {
       try {
         const cameras = await Html5Qrcode.getCameras();
-        const deviceId = cameras[0]?.id;
+        const deviceId = cameras.find(c =>
+          /back|rear|environment/i.test(c.label)
+        )?.id || cameras[0]?.id;
 
         const qrRegion = document.getElementById('qr-reader');
 
