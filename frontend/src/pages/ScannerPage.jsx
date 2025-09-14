@@ -12,6 +12,7 @@ const ScannerPage = () => {
   const html5QrRef = useRef(null);
   const handleResult = useCallback((qrCode) => {
     setError('');
+    console.log('QR detected:', qrCode);
     try {
       const url = new URL(qrCode);
       window.location.href = url.toString();
