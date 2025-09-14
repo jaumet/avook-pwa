@@ -12,7 +12,7 @@ const ScannerPage = () => {
   const streamRef = useRef(null);
   const animationRef = useRef(null);
   const html5QrRef = useRef(null);
-  const handleResult = useCallback(async (qrCode) => {
+  const handleResult = useCallback((qrCode) => {
     setError('');
     setExists(null);
     setScannedUrl('');
