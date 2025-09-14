@@ -309,9 +309,8 @@ async def upload_qrs_for_batch(
                     print(f"Skipping invalid JSON file {json_filename}: {e}")
                     continue
 
-            # Construct the expected PNG filename from metadata
-            date_str = metadata.date_generation.strftime('%Y-%m-%d')
-            expected_png_basename = f"{date_str}--{metadata.qr_code}.png"
+            # Use the provided image name to locate its PNG file
+            expected_png_basename = metadata.qr_image_name
 
             if expected_png_basename not in png_basenames:
                 print(f"No matching PNG found for {json_filename}. Expected: {expected_png_basename}")
@@ -329,6 +328,7 @@ async def upload_qrs_for_batch(
 
             pin_hash = auth.get_password_hash(str(metadata.pin))
             s3_key = f"qrcodes/{batch_id}/{metadata.qr_code}.png"
+            json_key = f"qrcodes/{batch_id}/{metadata.qr_code}.json"
 
             # Upload PNG to S3
             with zip_ref.open(png_filename) as png_file:
@@ -341,6 +341,18 @@ async def upload_qrs_for_batch(
                     )
                 except Exception as e:
                     raise HTTPException(status_code=500, detail=f"Failed to upload {png_filename} to S3: {str(e)}")
+            # Upload JSON metadata to S3
+            with zip_ref.open(json_filename) as metadata_file:
+                try:
+                    s3_client.s3_client.upload_fileobj(
+                        metadata_file,
+                        s3_client.S3_BUCKET,
+                        json_key,
+                        ExtraArgs={'ContentType': "application/json", 'ACL': "public-read"}
+                    )
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail=f"Failed to upload {json_filename} to S3: {str(e)}")
+
 
             db_qr_code = models.QRCode(
                 product_id=db_batch.product_id,
@@ -353,7 +365,10 @@ async def upload_qrs_for_batch(
             qr_codes_to_create.append(db_qr_code)
 
     if valid_pairs_found == 0:
-        raise HTTPException(status_code=400, detail="No valid QR code files found in the zip archive.")
+        raise HTTPException(
+            status_code=400,
+            detail="No valid QR code files found in the zip archive.",
+        )
 
     if qr_codes_to_create:
         db.bulk_save_objects(qr_codes_to_create)
