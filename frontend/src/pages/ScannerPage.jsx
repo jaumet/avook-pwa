@@ -1,58 +1,39 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { getDeviceId } from '../services/device';
 import { Html5Qrcode } from 'html5-qrcode';
 
 const ScannerPage = () => {
   const { t } = useTranslation();
   const [error, setError] = useState('');
-  const [useNative, setUseNative] = useState(false);
-  const navigate = useNavigate();
+  const [scannedUrl, setScannedUrl] = useState('');
+  const [exists, setExists] = useState(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const animationRef = useRef(null);
   const html5QrRef = useRef(null);
   const handleResult = useCallback(async (qrCode) => {
     setError('');
+    setExists(null);
+    setScannedUrl('');
+    console.log('QR detected:', qrCode);
     try {
-      let extractedCode = null;
+      const url = new URL(qrCode);
+      setScannedUrl(url.toString());
       try {
-        const url = new URL(qrCodeUrl);
-        const match = url.pathname.match(/\/code\/([^\/]+)/) || url.pathname.match(/\/share\/([^\/]+)/);
-        if (match && match[1]) {
-          extractedCode = match[1];
+        const res = await fetch(url.toString(), { method: 'HEAD' });
+        if (res.ok) {
+          setExists(true);
+        } else {
+          setExists(false);
         }
       } catch (e) {
-        // Not a valid URL, maybe the QR code is the code itself
-        extractedCode = qrCodeUrl;
+        setExists(false);
       }
-
-      if (!extractedCode) {
-        setError(t('error_invalid_qr'));
-        return;
-      }
-
-      const deviceId = await getDeviceId();
-      const baseFromEnv = import.meta.env.VITE_API_BASE;
-      const fallbackBase = window.location.port === '5173' ? 'http://localhost:8000' : '';
-      const apiBase = (baseFromEnv || fallbackBase).replace(/\/$/, '');
-      const slug = qrCode.trim().split('/').pop();
-      const url = `${apiBase}/api/v1/abook/${slug}/play-auth`;
-      const response = await axios.get(url, {
-        params: { device_id: deviceId }
-      });
-      navigate(`/play/${slug}`, { state: { authData: response.data } });
     } catch (err) {
-      console.error('API Error:', err);
-      if (err.response) {
-        setError(err.response.data.detail || t('error_auth_failed'));
-      } else {
-        setError(t('error_network'));
-      }
+      setError(t('error_invalid_qr'));
     }
-  }, [navigate, t]);
+  }, [t]);
 
   useEffect(() => {
     const stop = () => {
@@ -73,7 +54,9 @@ const ScannerPage = () => {
     const startScanner = async () => {
       try {
         const cameras = await Html5Qrcode.getCameras();
-        const deviceId = cameras[0]?.id;
+        const deviceId = cameras.find(c =>
+          /back|rear|environment/i.test(c.label)
+        )?.id || cameras[0]?.id;
 
         const qrRegion = document.getElementById('qr-reader');
 
@@ -113,8 +96,9 @@ const ScannerPage = () => {
         if (qrRegion) qrRegion.style.display = 'block';
         videoRef.current.style.display = 'none';
         html5QrRef.current = new Html5Qrcode('qr-reader');
+        const cameraConfig = deviceId || { facingMode: 'environment' };
         await html5QrRef.current.start(
-          { deviceId: { exact: deviceId } },
+          cameraConfig,
           { fps: 10, qrbox: 250 },
           (decodedText) => {
             stop();
@@ -144,6 +128,17 @@ const ScannerPage = () => {
         style={{ width: '100%', maxWidth: '500px', margin: '0 auto', display: 'none' }}
       />
       <p>Point your camera at a QR code.</p>
+      {exists && scannedUrl && (
+        <p>
+          {t('qr_exists_message')}{' '}
+          <a href={scannedUrl} target="_blank" rel="noopener noreferrer">
+            {scannedUrl}
+          </a>
+        </p>
+      )}
+      {exists === false && (
+        <p style={{ color: 'red' }}>{t('qr_not_found_message')}</p>
+      )}
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );

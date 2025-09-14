@@ -22,5 +22,5 @@ COPY --from=build /app/package.json .
 # Make port 5173 available
 EXPOSE 5173
 
-# Serve the production build, correctly handling SPA routing
-CMD ["./node_modules/.bin/serve", "-s", "dist", "-l", "5173"]
+# Serve the production build without noisy request logs
+CMD ["./node_modules/.bin/serve", "-s", "dist", "-l", "5173", "--no-request-logging"]

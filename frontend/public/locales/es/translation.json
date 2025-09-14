@@ -8,5 +8,7 @@
   "error_no_auth": "No se encontraron datos de autorización. Por favor, escanea un código QR de nuevo.",
   "error_scanner": "Error con el escáner. Por favor, comprueba los permisos de la cámara.",
   "error_auth_failed": "Error: Fallo al autorizar.",
-  "error_network": "Error de red. Por favor, inténtalo de nuevo."
+  "error_network": "Error de red. Por favor, inténtalo de nuevo.",
+  "qr_exists_message": "El QR existe. La URL es:",
+  "qr_not_found_message": "Este QR no está en el sistema avook. Inténtalo de nuevo."
 }
