@@ -20,16 +20,13 @@ const ScannerPage = () => {
     try {
       const url = new URL(qrCode);
       setScannedUrl(url.toString());
-      try {
-        const res = await fetch(url.toString(), { method: 'HEAD' });
-        if (res.ok) {
-          setExists(true);
-        } else {
+      fetch(url.toString(), { method: 'HEAD' })
+        .then((res) => {
+          setExists(res.ok);
+        })
+        .catch(() => {
           setExists(false);
-        }
-      } catch (e) {
-        setExists(false);
-      }
+        });
     } catch (err) {
       setError(t('error_invalid_qr'));
     }
