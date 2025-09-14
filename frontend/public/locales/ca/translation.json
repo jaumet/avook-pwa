@@ -8,5 +8,7 @@
   "error_no_auth": "No s'han trobat dades d'autorització. Si us plau, escaneja un codi QR de nou.",
   "error_scanner": "Error amb l'escàner. Si us plau, comprova els permisos de la càmera.",
   "error_auth_failed": "Error: Ha fallat l'autorització.",
-  "error_network": "Error de xarxa. Si us plau, torna-ho a provar."
+  "error_network": "Error de xarxa. Si us plau, torna-ho a provar.",
+  "qr_exists_message": "El QR existeix. L'URL és:",
+  "qr_not_found_message": "Aquest QR no és al sistema avook. Torna-ho a provar."
 }

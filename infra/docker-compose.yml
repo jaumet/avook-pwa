@@ -25,9 +25,14 @@ services:
       - "8000:8000"
     env_file:
       - ../backend/.env
+    environment:
+      S3_ENDPOINT: http://object-store:4566
+      S3_BUCKET: audiovook-test
     depends_on:
-      - db
-      - object-store
+      db:
+        condition: service_healthy
+      s3-setup:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -38,42 +43,55 @@ services:
 
   db:
     image: postgres:15
+    command: ["postgres", "-c", "log_checkpoints=off", "-c", "log_min_messages=warning"]
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=avook
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d avook"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - avook_net
 
   object-store:
-    image: minio/minio:latest
+    image: localstack/localstack:latest
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:4566"
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
-    command: server /data --console-address ":9001"
+      - SERVICES=s3
+      - AWS_DEFAULT_REGION=us-east-1
     volumes:
-      - minio_data:/data
+      - localstack_data:/var/lib/localstack
     networks:
       - avook_net
 
-  minio-setup:
-    image: minio/mc
+  s3-setup:
+    image: amazon/aws-cli
     depends_on:
       - object-store
     networks:
       - avook_net
     environment:
-      - MC_HOST_myminio=http://minioadmin:minioadmin@object-store:9000
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      S3_BUCKET: audiovook-test
+    volumes:
+      - ./s3-cors.json:/tmp/s3-cors.json:ro
+      - ./s3-bucket-policy.json:/tmp/s3-bucket-policy.json:ro
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc mb myminio/audiovook-test --ignore-existing;
-      /usr/bin/mc policy set download myminio/audiovook-test;
+      until aws --endpoint-url http://object-store:4566 s3 ls >/dev/null 2>&1; do sleep 1; done;
+      aws --endpoint-url http://object-store:4566 s3 mb s3://$${S3_BUCKET} 2>/dev/null || true;
+      aws --endpoint-url http://object-store:4566 s3api put-bucket-policy --bucket $${S3_BUCKET} --policy file:///tmp/s3-bucket-policy.json;
+      aws --endpoint-url http://object-store:4566 s3api put-bucket-cors --bucket $${S3_BUCKET} --cors-configuration file:///tmp/s3-cors.json;
       "
+    restart: on-failure
 
   proxy:
     image: nginx:latest
@@ -94,4 +112,4 @@ networks:
 
 volumes:
   postgres_data:
-  minio_data:
+  localstack_data:

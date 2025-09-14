@@ -123,6 +123,16 @@ class QRCodeDetails(QRCode):
 
 
 class QRCodeMetadata(BaseModel):
-    qr_code: str
-    date_generation: datetime
+    qr_image_name: str
+    product_id: Optional[str] = None
+    date_generation: Optional[datetime] = None
+    pvp: Optional[int] = None
+    pvp_currentcy: Optional[str] = None
+    status: Optional[str] = None
+    shop_id: Optional[str] = None
     pin: str
+    qr_code: str
+    avook_url: Optional[str] = None
+
+    class Config:
+        extra = "allow"
