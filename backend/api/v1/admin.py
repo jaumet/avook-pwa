@@ -300,6 +300,7 @@ async def upload_qrs_for_batch(
         # Create a dictionary for quick lookup of png files by their basename
         png_basenames = {os.path.basename(f): f for f in png_files}
 
+        mismatched_ids = set()
         for json_filename in json_files:
             with zip_ref.open(json_filename) as json_file:
                 try:
@@ -314,6 +315,14 @@ async def upload_qrs_for_batch(
 
             if expected_png_basename not in png_basenames:
                 print(f"No matching PNG found for {json_filename}. Expected: {expected_png_basename}")
+                continue
+
+            # Ensure the metadata's product_id matches the batch's product
+            if str(metadata.product_id) != str(db_batch.product_id):
+                mismatched_ids.add(str(metadata.product_id))
+                print(
+                    f"Metadata product_id {metadata.product_id} does not match batch product {db_batch.product_id} for QR {metadata.qr_code}. Skipping."
+                )
                 continue
 
             valid_pairs_found += 1
