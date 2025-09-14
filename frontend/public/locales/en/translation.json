@@ -8,5 +8,7 @@
   "error_no_auth": "No authorization data found. Please scan a QR code again.",
   "error_scanner": "Error with the scanner. Please check camera permissions.",
   "error_auth_failed": "Error: Failed to authorize.",
-  "error_network": "Network error. Please try again."
+  "error_network": "Network error. Please try again.",
+  "qr_exists_message": "The QR exists. The URL is:",
+  "qr_not_found_message": "This QR is not in the avook system. Try again."
 }
