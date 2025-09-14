@@ -80,7 +80,7 @@ const ScannerPage = () => {
         videoRef.current.style.display = 'none';
         html5QrRef.current = new Html5Qrcode('qr-reader');
         await html5QrRef.current.start(
-          { deviceId: { exact: deviceId } },
+          deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'environment' },
           { fps: 10, qrbox: 250 },
           (decodedText) => {
             stop();
