@@ -43,6 +43,7 @@ services:
 
   db:
     image: postgres:15
+    command: ["postgres", "-c", "log_checkpoints=off", "-c", "log_min_messages=warning"]
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
