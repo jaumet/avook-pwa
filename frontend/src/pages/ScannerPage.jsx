@@ -33,7 +33,8 @@ const ScannerPage = () => {
       try {
         const cameras = await Html5Qrcode.getCameras();
         const deviceId = cameras.find(c => /back|rear|environment/i.test(c.label))?.id || cameras[0]?.id;
-        html5QrRef.current = new Html5Qrcode(qrRef.current);
+        // Html5Qrcode expects the element ID string, not the DOM node
+        html5QrRef.current = new Html5Qrcode('qr-reader');
         await html5QrRef.current.start(
           deviceId || { facingMode: 'environment' },
           { fps: 10, qrbox: 250 },
