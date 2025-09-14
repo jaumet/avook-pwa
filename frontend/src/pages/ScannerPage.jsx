@@ -79,8 +79,9 @@ const ScannerPage = () => {
         if (qrRegion) qrRegion.style.display = 'block';
         videoRef.current.style.display = 'none';
         html5QrRef.current = new Html5Qrcode('qr-reader');
+        const cameraConfig = deviceId || { facingMode: 'environment' };
         await html5QrRef.current.start(
-          deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'environment' },
+          cameraConfig,
           { fps: 10, qrbox: 250 },
           (decodedText) => {
             stop();
