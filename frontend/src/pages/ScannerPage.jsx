@@ -6,16 +6,30 @@ import { Html5Qrcode } from 'html5-qrcode';
 const ScannerPage = () => {
   const { t } = useTranslation();
   const [error, setError] = useState('');
+  const [scannedUrl, setScannedUrl] = useState('');
+  const [exists, setExists] = useState(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const animationRef = useRef(null);
   const html5QrRef = useRef(null);
   const handleResult = useCallback((qrCode) => {
     setError('');
+    setExists(null);
+    setScannedUrl('');
     console.log('QR detected:', qrCode);
     try {
       const url = new URL(qrCode);
-      window.location.href = url.toString();
+      setScannedUrl(url.toString());
+      try {
+        const res = await fetch(url.toString(), { method: 'HEAD' });
+        if (res.ok) {
+          setExists(true);
+        } else {
+          setExists(false);
+        }
+      } catch (e) {
+        setExists(false);
+      }
     } catch (err) {
       setError(t('error_invalid_qr'));
     }
@@ -114,6 +128,17 @@ const ScannerPage = () => {
         style={{ width: '100%', maxWidth: '500px', margin: '0 auto', display: 'none' }}
       />
       <p>Point your camera at a QR code.</p>
+      {exists && scannedUrl && (
+        <p>
+          {t('qr_exists_message')}{' '}
+          <a href={scannedUrl} target="_blank" rel="noopener noreferrer">
+            {scannedUrl}
+          </a>
+        </p>
+      )}
+      {exists === false && (
+        <p style={{ color: 'red' }}>{t('qr_not_found_message')}</p>
+      )}
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
