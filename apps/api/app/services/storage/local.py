@@ -1,7 +1,6 @@
 """Local filesystem storage backend implementation."""
 
 from pathlib import Path
-from typing import BinaryIO
 
 from .base import LocalStorage
 

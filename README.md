@@ -1,11 +1,45 @@
 # Audiovook — Access Manager & Player
 
-This repository contains the mono-repo for the Audiovook PWA experience. It is intentionally
-minimal at this stage and focuses on providing the agreed project structure so that subsequent
-features can be layered in incrementally.
+Audiovook is a mono-repository that hosts both the FastAPI backend and the SvelteKit
+progressive web app for the player experience. This iteration focuses on bootstrapping
+the infrastructure needed to run the stack locally with Docker.
 
-## Repository Layout
+## Prerequisites
 
+- Docker & Docker Compose
+- Make
+- Node.js 20+ (only required when running the web app directly on the host)
+
+## Getting Started
+
+1. Duplicate `.env.example` and name it `.env`. Adjust any values you require for your
+   local environment.
+2. Build and start the development stack:
+
+   ```bash
+   make dev
+   ```
+
+   The command spins up the following services:
+
+   - **api** — FastAPI application exposed on `http://localhost:8000`
+   - **web** — SvelteKit dev server exposed on `http://localhost:5173`
+   - **db** — PostgreSQL 15 with persisted storage
+   - **cache** — Redis 7 for caching/rate-limiting needs
+   - **nginx** — Reverse proxy available on `http://localhost:8080`
+
+3. Visit `http://localhost:8080` to confirm Nginx is proxying the SvelteKit interface.
+   The FastAPI health check is available at `http://localhost:8000/health`.
+
+## Useful Commands
+
+```bash
+make dev      # build and start the full stack
+make stop     # stop all containers
+make logs     # tail service logs
+make test     # run API tests inside the api container
+make format   # apply Ruff, Black and Prettier formatting
+make seed     # execute the placeholder database seed script
 ```
 avook.pwa/
   apps/
@@ -20,15 +54,19 @@ in future tasks.
 
 ## Getting Started
 
-1. Duplicate `.env.example` into `.env` and customise as required.
-2. Use the provided `Makefile` targets to interact with the stack. The commands currently emit
-   placeholder messages until the full Docker environment and scripts are implemented.
+All commands operate through Docker Compose, so you do not need to install Python or
+Node dependencies locally.
+
+## Directory Overview
 
 ```
-make dev
-make test
-make format
-make seed
+avook.pwa/
+  apps/
+    api/            # FastAPI service
+    web/            # SvelteKit progressive web app
+  infra/            # Docker, reverse proxy, deployment assets
+  .github/          # CI/CD workflows
 ```
 
-A detailed setup guide will be added alongside the infrastructure implementation work.
+Both applications currently expose minimal placeholder features but share the final
+project layout so that subsequent work can focus on business logic and UI.

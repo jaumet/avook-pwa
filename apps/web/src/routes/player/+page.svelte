@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from 'svelte-i18n';
   let isPlaying = false;
 
   const togglePlayback = () => {
@@ -7,10 +8,10 @@
 </script>
 
 <section class="player">
-  <h1>Player Placeholder</h1>
-  <p>The full-featured Audiovook player UI will live here.</p>
+  <h1>{$t('player.title')}</h1>
+  <p>{$t('player.description')}</p>
   <button class="player__button" type="button" on:click={togglePlayback}>
-    {isPlaying ? 'Pause' : 'Play'}
+    {isPlaying ? $t('player.pause') : $t('player.play')}
   </button>
 </section>
 

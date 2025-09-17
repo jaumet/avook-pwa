@@ -23,4 +23,6 @@ class OAuthProvider:
     def authorization_url(self, redirect_uri: str) -> str:
         """Return a dummy authorization URL."""
 
-        return f"https://auth.example.com/{self.config.name}?redirect_uri={redirect_uri}"
+        return (
+            f"https://auth.example.com/{self.config.name}?redirect_uri={redirect_uri}"
+        )

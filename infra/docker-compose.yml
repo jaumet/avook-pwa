@@ -5,34 +5,58 @@ services:
     build:
       context: ../
       dockerfile: Dockerfile.api
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - ../.env
+    environment:
+      PYTHONPATH: /app/apps/api
+    volumes:
+      - ../:/app
     ports:
       - "8000:8000"
-    environment:
-      - ENVIRONMENT=development
     depends_on:
-      - db
-      - cache
+      db:
+        condition: service_started
+      cache:
+        condition: service_started
+
   web:
     build:
       context: ../
       dockerfile: Dockerfile.web
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+    working_dir: /app/apps/web
+    env_file:
+      - ../.env
+    environment:
+      VITE_API_BASE: http://api:8000
+    volumes:
+      - ../:/app
+      - web_node_modules:/app/apps/web/node_modules
     ports:
       - "5173:5173"
     depends_on:
       - api
+
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: avook
-      POSTGRES_PASSWORD: avook
-      POSTGRES_DB: avook
+      POSTGRES_USER: ${POSTGRES_USER:-avook}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-avook}
+      POSTGRES_DB: ${POSTGRES_DB:-avook}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
   cache:
     image: redis:7-alpine
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
     ports:
       - "6379:6379"
+
   nginx:
     image: nginx:stable-alpine
     volumes:
@@ -42,3 +66,8 @@ services:
     depends_on:
       - api
       - web
+
+volumes:
+  postgres_data:
+  redis_data:
+  web_node_modules:

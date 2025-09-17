@@ -1,6 +1,10 @@
+<script lang="ts">
+  import { t } from 'svelte-i18n';
+</script>
+
 <section class="error">
-  <h1>Something went wrong</h1>
-  <p>Please try again later or contact support if the issue persists.</p>
+  <h1>{$t('error.title')}</h1>
+  <p>{$t('error.description')}</p>
 </section>
 
 <style>

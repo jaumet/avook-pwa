@@ -1,0 +1,18 @@
+{
+  "access": {
+    "title": "Access Audiovook",
+    "placeholder": "This page will help you validate your QR code token.",
+    "token_missing": "Provide the token query parameter to continue.",
+    "token": "Token"
+  },
+  "player": {
+    "title": "Audiovook Player",
+    "description": "The full-featured player interface is coming soon.",
+    "play": "Play",
+    "pause": "Pause"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "Please try again later or contact support if the issue persists."
+  }
+}
