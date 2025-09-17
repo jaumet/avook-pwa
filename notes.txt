@@ -1,0 +1,174 @@
+
+0) Docker prune
+1) Road map
+2) EStruc. fitxers/directories i URLs, variavles,
+3) Github inici
+4) github crear versio tag!!
+
+###################################
+
+0) Per errors estranys, si hi ha dockers antic, es poden esborrar tots amb un prune:
+
+docker system prune -a --volumes
+
+
+###################################
+
+1) Roadmap:
+
+
+
+###################################
+2) 2) EStruc. fitxers/directories i URLs, variavles,
+
+Estructura de carpetes (concreta)
+
+avook.pwa/
+  apps/
+    api/
+      app/
+        api/
+          access.py
+          play.py
+          preview.py
+          auth.py
+        core/
+          config.py
+          security.py   # HMAC/JWT, sign media
+          rate_limit.py
+        models/
+          base.py
+          qr.py
+          account.py
+          device.py
+          binding.py
+          progress.py
+          session.py
+        services/
+          storage/
+            base.py
+            local.py
+            s3.py
+          media_signer.py
+          sampler.py
+          oauth.py
+          otp.py
+      tests/
+        api/
+    web/
+      src/
+        routes/
+          access/+page.svelte
+          player/+page.svelte
+          error/+page.svelte
+        lib/i18n/
+          ca.json es.json en.json
+        lib/api.ts
+        app.d.ts
+  infra/
+    docker-compose.yml
+    nginx/
+      default.conf
+  .github/workflows/ci.yml
+  .env.example
+  Makefile
+  README.md
+
+Scripts i ordres útils
+
+Makefile (exemple mínim)
+
+dev:
+\tdocker compose -f infra/docker-compose.yml up --build
+
+test:
+\tdocker compose -f infra/docker-compose.yml exec -T api pytest -q
+
+format:
+\tdocker compose -f infra/docker-compose.yml exec -T api ruff check --fix .
+
+seed:
+\tdocker compose -f infra/docker-compose.yml exec -T api python -m app.scripts.seed
+
+Variables .env.example (claus principals)
+
+POSTGRES_USER=avook
+POSTGRES_PASSWORD=avook
+POSTGRES_DB=avook
+REDIS_URL=redis://cache:6379/0
+JWT_SECRET=change-me
+HMAC_MEDIA_SECRET=change-me-too
+OAUTH_GOOGLE_CLIENT_ID=...
+OAUTH_GOOGLE_CLIENT_SECRET=...
+OAUTH_APPLE_TEAM_ID=...
+OAUTH_APPLE_KEY_ID=...
+OAUTH_APPLE_PRIVATE_KEY=... # PEM
+S3_ENDPOINT=
+S3_ACCESS_KEY=
+S3_SECRET_KEY=
+S3_BUCKET=
+
+
+
+
+###################################
+3) GITHUB:
+
+Quick setup — if you’ve done this kind of thing before
+git@github.com:jaumet/avook-pwa.git
+Get started by creating a new file or uploading an existing file. We recommend every repository include a README, LICENSE, and .gitignore.
+
+…or create a new repository on the command line
+echo "# avook-pwa" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin git@github.com:jaumet/avook-pwa.git
+git push -u origin main
+…or push an existing repository from the command line
+git remote add origin git@github.com:jaumet/avook-pwa.git
+git branch -M main
+git push -u origin main
+
+
+
+#####################################3
+
+
+Això ho fas amb tags de Git, que serveixen per marcar un estat concret del teu repo (com una “foto fixa”).
+
+1. Crear un tag ara mateix
+
+# crea un tag amb nom v1.0 (posa-hi el que vulguis)
+git tag v1.0
+
+# o si vols afegir un missatge (més recomanable):
+git tag -a v1.0 -m "Primera versió estable"
+
+2. Pujar el tag a GitHub (o al teu remot)
+
+git push origin v1.0
+
+    Si vols pujar tots els tags de cop:
+
+git push origin --tags
+
+3. Veure quins tags tens
+
+git tag
+
+4. Tornar a un tag en el futur
+
+Aquí tens dues opcions:
+
+    Només mirar el codi d’aquell moment (detached HEAD):
+
+git checkout v1.0
+
+Això et deixa el repo exactament com estava en aquell tag, però no és una branca editable.
+
+    Crear una branca nova a partir d’aquell tag (per treballar-hi):
+
+git checkout -b fix-bug-v1.0 v1.0
+
