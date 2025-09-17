@@ -51,7 +51,7 @@ avook.pwa/
   README.md
 ```
 
-- [ ] Crear arbre anterior i fer **commit inicial** (branch `main`).
+- [x] Crear arbre anterior i fer **commit inicial** (branch `main`).
 
 ---
 
