@@ -16,6 +16,91 @@ docker system prune -a --volumes
 
 1) Roadmap:
 
+Roadmap (Parts 1 i 2)
+Fase A — Bootstrap (Dia 0–1)
+
+    Repo mono: avook.pwa amb apps/api (FastAPI) i apps/web (SvelteKit), infra/ (docker, nginx), i packages/ (si cal SDK compartit).
+
+    Config: .env.example, .env (local), variables per DB, Redis, S3, OAuth (Google/Apple), secrets HMAC/JWT.
+
+    Docker Compose: api, web, db (Postgres), cache (Redis), minio (opcional), nginx reverse proxy.
+
+Fase B — Dades i models (Dia 1–2)
+
+    Esquema mínim (PostgreSQL):
+
+        qr_code(id uuid pk, token text unique, status enum('new','active','blocked'), product_id int, batch_id int, created_at, registered_at, max_reactivations int default 999, cooldown_until timestamptz null)
+
+        account(id uuid pk, email text unique null, provider enum('google','apple','otp','guest'), created_at)
+
+        device(id uuid pk, account_id uuid null, ua_hash text, created_at)
+
+        qr_binding(qr_id uuid fk, device_id uuid fk, account_id uuid null, active bool, created_at, revoked_at null)
+
+        play_session(id uuid pk, qr_id, device_id, started_at, ended_at null, ip_hash text)
+
+        listening_progress(qr_id, account_id null, device_id, track_id text, position_ms int, updated_at, primary key(qr_id, device_id, track_id))
+
+        Indexos útils: idx_qr_token, idx_progress_updated_at, idx_binding_qr_active.
+
+Fase C — Access Manager (Dia 2–4)
+
+    Endpoints:
+
+        POST /api/access/validate → {token, device_id} → status: "new"|"registered"|"invalid", can_reregister, preview_available, cooldown_until.
+
+        POST /api/access/register → primer vincle (qr↔device[↔account]) si status=="new".
+
+        POST /api/access/reregister → mou el vincle a un nou device_id; aplica cooldown si abús.
+
+        GET /api/preview/manifest.m3u8?token=… → playlist efímera per sampler.
+
+    Policies:
+
+        Sessió concurrent única per qr_id: al play-auth expulsa sessions antigues.
+
+        Quota dispositius per qr (p. ex. 3). Si superes la quota en <24 h → cooldown 48 h.
+
+Fase D — Player (Dia 4–6)
+
+    Endpoints:
+
+        POST /api/play-auth → {token, device_id} → {signed_media_url|hls_url, start_position_ms, track_manifest}.
+
+        POST /api/progress → upsert de progrés cada 15–30 s i en pause/end.
+
+    Frontend PWA:
+
+        Rutes: /access?token=…, /player, /purchase (link out), /error.
+
+        svelte-i18n (CA/ES/EN) i DejaVu Sans.
+
+        Controls i A11y (teclat, focus, rols ARIA).
+
+Fase E — Autenticació (Dia 6–8)
+
+    Google/Apple OAuth + OTP magic link.
+
+    Guest opcional: esdevé “comptatitzat” quan verifica OTP o vincula Google/Apple.
+
+    Cookies httpOnly + short JWT (15–30 min) + refresh token (1–7 dies).
+
+Fase F — Streaming (Dia 8–10)
+
+    MVP: HTTP Range amb signed URLs (expiren 60–180 s, device-bound).
+
+    Plus: HLS (segments 6–8s) + playlists efímeres per sampler i play.
+
+Fase G — Qualitat i lliurable (Dia 10–12)
+
+    Tests: PyTest (API) + Playwright (E2E PWA: access→player→resume).
+
+    CI: GitHub Actions (lint, tests, build imatges).
+
+    Hardening: rate limits (Redis), rotació de claus, CORS, CSP bàsica.
+
+    Docs: README, API docs (OpenAPI), decisions d’arquitectura.
+
 
 
 ###################################
