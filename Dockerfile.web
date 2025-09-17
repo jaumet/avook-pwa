@@ -1,0 +1,17 @@
+FROM node:20-alpine AS base
+
+WORKDIR /app
+
+# Install dependencies first to improve caching
+COPY apps/web/package*.json apps/web/
+RUN cd apps/web \
+    && npm install
+
+# Copy repository
+COPY . .
+
+WORKDIR /app/apps/web
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev"]
