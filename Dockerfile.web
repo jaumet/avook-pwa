@@ -1,0 +1,7 @@
+# Placeholder Dockerfile for the Audiovook web client.
+FROM node:20-alpine
+
+WORKDIR /app
+COPY . /app
+
+CMD ["npm", "run", "dev", "--", "--host"]
