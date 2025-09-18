@@ -73,6 +73,7 @@ make test
 
 _Notes:_
 - Normalised the API Dockerfile command to a single-line JSON array so `docker compose up` builds without parse errors.
+- Added the missing SvelteKit `src/app.html` template and simplified the dev script arguments so the web container boots without Vite import errors.
 
 **.env.example (claus principals)**
 ```
