@@ -44,6 +44,21 @@ make migrate  # apply Alembic migrations to the database
 make format   # apply Ruff, Black and Prettier formatting
 make seed     # execute the placeholder database seed script
 ```
+avook.pwa/
+  apps/
+    api/            # FastAPI service
+    web/            # SvelteKit progressive web app
+  infra/            # Docker, reverse proxy, deployment assets
+  .github/          # CI/CD workflows
+```
+
+Each directory already includes placeholder modules and configuration files that will be extended
+in future tasks.
+
+## Getting Started
+
+All commands operate through Docker Compose, so you do not need to install Python or
+Node dependencies locally.
 
 All commands operate through Docker Compose, so you do not need to install Python or
 Node dependencies locally. Run `make migrate` once the containers are up to create the
