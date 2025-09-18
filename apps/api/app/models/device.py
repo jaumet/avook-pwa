@@ -1,18 +1,43 @@
-"""Device model placeholder."""
+"""Device model definitions using SQLModel."""
 
 from __future__ import annotations
 
-from sqlalchemy import Column, DateTime, String
+import uuid
+from datetime import datetime
+from typing import Optional
 
-from .base import Base
+from sqlalchemy import Column, DateTime, ForeignKey, Text, func
+from sqlalchemy.dialects.postgresql import UUID
+from sqlmodel import Field, SQLModel
 
 
-class Device(Base):
-    """Represents a listening device bound to an account."""
+class Device(SQLModel, table=True):
+    """Represents a client device that interacts with Audiovook."""
 
     __tablename__ = "device"
 
-    id = Column(String, primary_key=True)
-    account_id = Column(String, nullable=True)
-    ua_hash = Column(String, nullable=False)
-    created_at = Column(DateTime)
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4,
+        sa_column=Column(UUID(as_uuid=True), primary_key=True, nullable=False),
+    )
+    account_id: Optional[uuid.UUID] = Field(
+        default=None,
+        sa_column=Column(
+            UUID(as_uuid=True),
+            ForeignKey("account.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
+    )
+    ua_hash: str = Field(
+        sa_column=Column(Text, nullable=False),
+    )
+    created_at: datetime = Field(
+        sa_column=Column(
+            DateTime(timezone=True),
+            nullable=False,
+            server_default=func.now(),
+        ),
+    )
+
+
+__all__ = ["Device"]

@@ -1,20 +1,53 @@
-"""Playback session model placeholder."""
+"""Play session model definitions using SQLModel."""
 
 from __future__ import annotations
 
-from sqlalchemy import Column, DateTime, String
+import uuid
+from datetime import datetime
+from typing import Optional
 
-from .base import Base
+from sqlalchemy import Column, DateTime, ForeignKey, Text, func
+from sqlalchemy.dialects.postgresql import UUID
+from sqlmodel import Field, SQLModel
 
 
-class PlaySession(Base):
-    """Represents a listening session tied to a device and QR code."""
+class PlaySession(SQLModel, table=True):
+    """Represents an active playback session for a QR/device pair."""
 
     __tablename__ = "play_session"
 
-    id = Column(String, primary_key=True)
-    qr_id = Column(String, nullable=False)
-    device_id = Column(String, nullable=False)
-    ip_hash = Column(String, nullable=True)
-    started_at = Column(DateTime)
-    ended_at = Column(DateTime)
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4,
+        sa_column=Column(UUID(as_uuid=True), primary_key=True, nullable=False),
+    )
+    qr_id: uuid.UUID = Field(
+        sa_column=Column(
+            UUID(as_uuid=True),
+            ForeignKey("qr_code.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+    )
+    device_id: uuid.UUID = Field(
+        sa_column=Column(
+            UUID(as_uuid=True),
+            ForeignKey("device.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+    )
+    started_at: datetime = Field(
+        sa_column=Column(
+            DateTime(timezone=True),
+            nullable=False,
+            server_default=func.now(),
+        ),
+    )
+    ended_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), nullable=True),
+    )
+    ip_hash: str = Field(
+        sa_column=Column(Text, nullable=False),
+    )
+
+
+__all__ = ["PlaySession"]

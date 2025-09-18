@@ -1,4 +1,4 @@
-.PHONY: dev stop logs test format seed
+.PHONY: dev stop logs test format seed migrate
 
 DEV_COMPOSE=infra/docker-compose.yml
 COMPOSE=docker compose -f $(DEV_COMPOSE)
@@ -18,6 +18,10 @@ logs:
 ## Run the API test suite
 test:
 	$(COMPOSE) run --rm api pytest -q
+
+## Apply the latest database migrations
+migrate:
+	$(COMPOSE) run --rm api alembic upgrade head
 
 ## Auto-format code and fix lint issues
 format:

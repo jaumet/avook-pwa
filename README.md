@@ -40,6 +40,7 @@ make dev      # build and start the full stack
 make stop     # stop all containers
 make logs     # tail service logs
 make test     # run API tests inside the api container
+make migrate  # apply Alembic migrations to the database
 make format   # apply Ruff, Black and Prettier formatting
 make seed     # execute the placeholder database seed script
 ```
@@ -60,7 +61,8 @@ All commands operate through Docker Compose, so you do not need to install Pytho
 Node dependencies locally.
 
 All commands operate through Docker Compose, so you do not need to install Python or
-Node dependencies locally.
+Node dependencies locally. Run `make migrate` once the containers are up to create the
+database schema and sample QR codes required for development.
 
 ## Directory Overview
 

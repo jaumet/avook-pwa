@@ -105,19 +105,22 @@ S3_BUCKET=
 
 ## 3) Model de dades (PostgreSQL)
 
-- [ ] Crear models i migració #1:
-  - [ ] `qr_code(id uuid pk, token text unique, status enum('new','active','blocked'), product_id int, batch_id int, created_at, registered_at, max_reactivations int default 999, cooldown_until timestamptz null)`
-  - [ ] `account(id uuid pk, email text unique null, provider enum('google','apple','otp','guest'), created_at)`
-  - [ ] `device(id uuid pk, account_id uuid null, ua_hash text, created_at)`
-  - [ ] `qr_binding(qr_id uuid fk, device_id uuid fk, account_id uuid null, active bool, created_at, revoked_at null)`
-  - [ ] `play_session(id uuid pk, qr_id, device_id, started_at, ended_at null, ip_hash text)`
-  - [ ] `listening_progress(qr_id, account_id null, device_id, track_id text, position_ms int, updated_at, primary key(qr_id, device_id, track_id))`
-  - [ ] Índexos: `idx_qr_token`, `idx_progress_updated_at`, `idx_binding_qr_active`
-- [ ] **Seed**: crear `qr_code` de prova amb `token` dummy
+- [x] Crear models i migració #1:
+  - [x] `qr_code(id uuid pk, token text unique, status enum('new','active','blocked'), product_id int, batch_id int, created_at, registered_at, max_reactivations int default 999, cooldown_until timestamptz null)`
+  - [x] `account(id uuid pk, email text unique null, provider enum('google','apple','otp','guest'), created_at)`
+  - [x] `device(id uuid pk, account_id uuid null, ua_hash text, created_at)`
+  - [x] `qr_binding(qr_id uuid fk, device_id uuid fk, account_id uuid null, active bool, created_at, revoked_at null)`
+  - [x] `play_session(id uuid pk, qr_id, device_id, started_at, ended_at null, ip_hash text)`
+  - [x] `listening_progress(qr_id, account_id null, device_id, track_id text, position_ms int, updated_at, primary key(qr_id, device_id, track_id))`
+  - [x] Índexos: `idx_qr_token`, `idx_progress_updated_at`, `idx_binding_qr_active`
+- [x] **Seed**: crear `qr_code` de prova amb `token` dummy
+
+_Notes:_
+- Migració Alembic inicial (`202409180001_initial_schema`) crea l’esquema complet amb enums PostgreSQL i insereix tres QR de prova (`DEMO-ALPHA`, `DEMO-BETA`, `DEMO-GAMMA`).
 
 - **Criteris d’acceptació**:
-  - [ ] Migracions aplicables a entorn net i existent
-  - [ ] Seed crea com a mínim 3 QR vàlids
+  - [x] Migracions aplicables a entorn net i existent
+  - [x] Seed crea com a mínim 3 QR vàlids
 
 ---
 
