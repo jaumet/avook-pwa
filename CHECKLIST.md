@@ -97,6 +97,8 @@ S3_SECRET_KEY=
 S3_BUCKET=
 ```
 
+- _Notes:_
+  - Added `/api/access/validate` to check QR tokens, returning status, re-register eligibility, preview availability and seeded product metadata so the web client can surface human-readable guidance.
 - **Criteris d’acceptació**:
   - [x] `GET /health` de l’API retorna `200`
   - [x] `web` serveix `/` i assets
@@ -127,7 +129,8 @@ _Notes:_
 ## 4) Access Manager (API)
 
 ### Endpoints
-- [ ] `POST /api/access/validate`
+- [x] `POST /api/access/validate`
+  - _Notes:_ QR tokens are now validated against the seeded database and return guidance for the SvelteKit access flow.
   - **Req**: `{ "token": "abc", "device_id": "uuid" }`
   - **Res**: `{ "status": "new|registered|invalid|blocked", "can_reregister": true, "cooldown_until": "ISO", "preview_available": true, "product": {"id":1,"title":"…"} }`
 - [ ] `POST /api/access/register` (primer vincle)
@@ -179,7 +182,8 @@ _Notes:_
 
 ## 7) Web (SvelteKit PWA)
 
-- [ ] Rutes: `/access?token=…`, `/player`, `/error`
+- [x] Rutes: `/access?token=…`, `/player`, `/error`
+  - _Notes:_ The access route now surfaces friendly messaging for missing, invalid and blocked tokens using the validate API.
 - [ ] `svelte-i18n` (CA/ES/EN) i **DejaVu Sans**
 - [ ] **DeviceID**: UUID v4 guardat a `localStorage`
 - [ ] **Access flow**:

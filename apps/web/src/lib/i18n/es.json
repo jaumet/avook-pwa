@@ -1,9 +1,27 @@
 {
   "access": {
-    "title": "Accede a Audiovook",
-    "placeholder": "Esta página te guiará para validar tu código QR.",
-    "token_missing": "Debes proporcionar el parámetro token para continuar.",
-    "token": "Token"
+    "title": "Acceso a Audiovook",
+    "placeholder": "Valida tu código QR para continuar hacia el reproductor.",
+    "token_missing": "Añade el parámetro token en la URL para iniciar la validación.",
+    "token": "Token",
+    "token_label": "Token",
+    "token_invalid": "No encontramos ningún código QR con ese token. Revísalo e inténtalo de nuevo.",
+    "token_error": "Ahora mismo no podemos validar el token. Prueba de nuevo en unos segundos.",
+    "demo_tokens_title": "Tokens de prueba",
+    "demo_tokens_description": "Utiliza uno de estos tokens precargados cuando hagas pruebas locales.",
+    "product": "Producto #{id}",
+    "preview": "Acceso al sampler",
+    "available": "Disponible",
+    "unavailable": "No disponible",
+    "can_reregister": "Permite volver a registrar",
+    "yes": "Sí",
+    "no": "No",
+    "cooldown": "Bloqueado hasta",
+    "status": {
+      "new": "Este token está listo para vincularse con tu dispositivo.",
+      "registered": "Este token ya está registrado. Puedes continuar en el dispositivo vinculado.",
+      "blocked": "Este token está bloqueado. Contacta con soporte si necesitas ayuda."
+    }
   },
   "player": {
     "title": "Reproductor de Audiovook",

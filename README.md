@@ -77,3 +77,26 @@ avook.pwa/
 
 Both applications currently expose minimal placeholder features but share the final
 project layout so that subsequent work can focus on business logic and UI.
+
+## Access validation
+
+The API exposes `POST /api/access/validate`, which inspects a QR token and reports
+whether it is new, already registered, blocked or unknown. The handler currently
+serves basic metadata (product identifier, preview eligibility, cooldown window)
+so the web client can display user-facing guidance.
+
+### Demo tokens
+
+Alembic migration `202409180001_initial_schema` seeds three QR codes that you can
+use while testing locally:
+
+- `DEMO-ALPHA`
+- `DEMO-BETA`
+- `DEMO-GAMMA`
+
+Visit `http://localhost:8080/access?token=DEMO-ALPHA` to exercise the validation
+flow from the PWA. If you omit the token or provide an unknown one, the interface
+will now explain the issue instead of failing with a server error.
+
+Both applications currently expose minimal placeholder features but share the final
+project layout so that subsequent work can focus on business logic and UI.
