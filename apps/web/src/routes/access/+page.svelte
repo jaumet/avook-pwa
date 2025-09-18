@@ -10,9 +10,6 @@
     registered: 'access.status.registered',
     blocked: 'access.status.blocked'
   };
-</script>
-
-<section class="access">
   <h1>{$t('access.title')}</h1>
   <p class="intro">{$t('access.placeholder')}</p>
 
