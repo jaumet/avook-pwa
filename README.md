@@ -13,7 +13,9 @@ the infrastructure needed to run the stack locally with Docker.
 ## Getting Started
 
 1. Duplicate `.env.example` and name it `.env`. Adjust any values you require for your
-   local environment.
+   local environment. If you skip this step, the stack will still boot using the default
+   development values baked into the services, and you can add the file later when you
+   need to override secrets or connection details.
 2. Build and start the development stack:
 
    ```bash
@@ -53,6 +55,9 @@ Each directory already includes placeholder modules and configuration files that
 in future tasks.
 
 ## Getting Started
+
+All commands operate through Docker Compose, so you do not need to install Python or
+Node dependencies locally.
 
 All commands operate through Docker Compose, so you do not need to install Python or
 Node dependencies locally.

@@ -37,7 +37,6 @@ def create_app() -> FastAPI:
     app.include_router(preview.router, prefix=API_PREFIX)
     app.include_router(shop.router, prefix=API_PREFIX)
 
-
     @app.get("/health")
     async def healthcheck() -> dict[str, str]:
         """Return a basic health status payload."""
