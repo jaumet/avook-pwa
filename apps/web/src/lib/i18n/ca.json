@@ -1,0 +1,18 @@
+{
+  "access": {
+    "title": "Accedeix a Audiovook",
+    "placeholder": "Aquesta pàgina t'ajudarà a validar el teu codi QR.",
+    "token_missing": "Cal proporcionar el paràmetre token per continuar.",
+    "token": "Token"
+  },
+  "player": {
+    "title": "Reproductor d'Audiovook",
+    "description": "La interfície completa del reproductor arribarà ben aviat.",
+    "play": "Reprodueix",
+    "pause": "Pausa"
+  },
+  "error": {
+    "title": "Alguna cosa ha fallat",
+    "description": "Torna-ho a intentar més tard o contacta amb suport."
+  }
+}
