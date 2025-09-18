@@ -51,18 +51,18 @@ avook.pwa/
   README.md
 ```
 
-- [ ] Crear arbre anterior i fer **commit inicial** (branch `main`).
+- [x] Crear arbre anterior i fer **commit inicial** (branch `main`).
 
 ---
 
 ## 2) Infra i arrencada
 
-- [ ] **Docker Compose** amb serveis: `db` (Postgres), `cache` (Redis), `api`, `web`, `nginx` (i `minio` opcional)
-- [ ] **Makefile** amb objectius:
-  - [ ] `make dev` — aixeca serveis
-  - [ ] `make test` — executa tests
-  - [ ] `make format` — lint/format (ruff, black, prettier)
-  - [ ] `make seed` — dades de prova
+- [x] **Docker Compose** amb serveis: `db` (Postgres), `cache` (Redis), `api`, `web`, `nginx` (i `minio` opcional)
+- [x] **Makefile** amb objectius:
+  - [x] `make dev` — aixeca serveis
+  - [x] `make test` — executa tests
+  - [x] `make format` — lint/format (ruff, black, prettier)
+  - [x] `make seed` — dades de prova
 
 **Comandes d’exemple**
 ```bash
@@ -70,6 +70,10 @@ docker compose -f infra/docker-compose.yml up --build
 make dev
 make test
 ```
+
+_Notes:_
+- Normalised the API Dockerfile command to a single-line JSON array so `docker compose up` builds without parse errors.
+- Added the missing SvelteKit `src/app.html` template and simplified the dev script arguments so the web container boots without Vite import errors.
 
 **.env.example (claus principals)**
 ```
@@ -94,8 +98,8 @@ S3_BUCKET=
 ```
 
 - **Criteris d’acceptació**:
-  - [ ] `GET /health` de l’API retorna `200`
-  - [ ] `web` serveix `/` i assets
+  - [x] `GET /health` de l’API retorna `200`
+  - [x] `web` serveix `/` i assets
 
 ---
 
