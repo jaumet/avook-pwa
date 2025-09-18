@@ -1,0 +1,36 @@
+{
+  "access": {
+    "title": "Access Audiovook",
+    "placeholder": "Validate your QR code token to continue to the player.",
+    "token_missing": "Add the token query parameter to start validation.",
+    "token": "Token",
+    "token_label": "Token",
+    "token_invalid": "We could not find a QR code with that token. Please check it and try again.",
+    "token_error": "We could not validate your token right now. Try again in a moment.",
+    "demo_tokens_title": "Demo tokens",
+    "demo_tokens_description": "Use one of these seeded tokens when testing locally.",
+    "product": "Product #{id}",
+    "preview": "Preview access",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "can_reregister": "Can re-register",
+    "yes": "Yes",
+    "no": "No",
+    "cooldown": "Cooldown until",
+    "status": {
+      "new": "This token is ready to be registered with your device.",
+      "registered": "This token is already registered. You can continue on your linked device.",
+      "blocked": "This token has been blocked. Contact support if you need assistance."
+    }
+  },
+  "player": {
+    "title": "Audiovook Player",
+    "description": "The full-featured player interface is coming soon.",
+    "play": "Play",
+    "pause": "Pause"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "Please try again later or contact support if the issue persists."
+  }
+}

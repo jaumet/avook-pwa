@@ -1,0 +1,36 @@
+{
+  "access": {
+    "title": "Accés a Audiovook",
+    "placeholder": "Valida el teu codi QR per continuar cap al reproductor.",
+    "token_missing": "Afegeix el paràmetre token a la URL per començar la validació.",
+    "token": "Token",
+    "token_label": "Token",
+    "token_invalid": "No hem trobat cap codi QR amb aquest token. Revisa’l i torna-ho a provar.",
+    "token_error": "Ara mateix no podem validar el token. Torna-ho a provar en uns instants.",
+    "demo_tokens_title": "Tokens de prova",
+    "demo_tokens_description": "Utilitza un d’aquests tokens ja sembrats per fer proves locals.",
+    "product": "Producte #{id}",
+    "preview": "Accés al tast",
+    "available": "Disponible",
+    "unavailable": "No disponible",
+    "can_reregister": "Permet tornar a registrar",
+    "yes": "Sí",
+    "no": "No",
+    "cooldown": "Bloquejat fins",
+    "status": {
+      "new": "Aquest token està llest per vincular-se amb el teu dispositiu.",
+      "registered": "Aquest token ja està registrat. Pots continuar al dispositiu vinculat.",
+      "blocked": "Aquest token està bloquejat. Contacta amb suport si necessites ajuda."
+    }
+  },
+  "player": {
+    "title": "Reproductor d'Audiovook",
+    "description": "La interfície completa del reproductor arribarà ben aviat.",
+    "play": "Reprodueix",
+    "pause": "Pausa"
+  },
+  "error": {
+    "title": "Alguna cosa ha fallat",
+    "description": "Torna-ho a intentar més tard o contacta amb suport."
+  }
+}
