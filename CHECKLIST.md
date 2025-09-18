@@ -71,6 +71,9 @@ make dev
 make test
 ```
 
+_Notes:_
+- Normalised the API Dockerfile command to a single-line JSON array so `docker compose up` builds without parse errors.
+
 **.env.example (claus principals)**
 ```
 POSTGRES_USER=avook
