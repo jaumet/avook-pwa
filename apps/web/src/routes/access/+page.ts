@@ -1,3 +1,4 @@
+import { apiFetch } from '$lib/api';
 import type { PageLoad } from './$types';
 
 const DEMO_TOKENS = ['DEMO-ALPHA', 'DEMO-BETA', 'DEMO-GAMMA'] as const;
@@ -35,20 +36,17 @@ export const load: PageLoad = async ({ url, fetch }) => {
   }
 
   try {
-    const response = await fetch('/api/access/validate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
+    const payload = await apiFetch<AccessValidation>(
+      '/access/validate',
+      {
+        method: 'POST',
+        body: JSON.stringify({ token })
       },
-      body: JSON.stringify({ token })
-    });
+      fetch
+    );
 
-    const payload = (await response.json()) as AccessValidation;
-
-    if (!response.ok || !payload?.status) {
-      const errorMessage = !response.ok
-        ? `HTTP ${response.status}`
-        : 'Unknown validation response';
+    if (!payload?.status) {
+      const errorMessage = 'Unknown validation response';
 
       return {
         token,
