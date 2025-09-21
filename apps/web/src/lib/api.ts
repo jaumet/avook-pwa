@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
+import { browser } from '$app/environment';
+
+const SERVER_API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
+const API_BASE = browser ? '/api' : SERVER_API_BASE;
 
 export async function apiFetch<T>(
   endpoint: string,
