@@ -22,9 +22,15 @@ export interface AccessPageData {
   demoTokens: readonly string[];
 }
 
-export const load: PageLoad = async ({ url, fetch }) => {
-  const token = url.searchParams.get('token')?.trim() ?? null;
+function normalizeToken(rawToken: string | null | undefined): string | null {
+  const token = rawToken?.trim();
+  return token ? token : null;
+}
 
+export async function resolveAccessPage(
+  token: string | null,
+  fetcher: typeof fetch
+): Promise<AccessPageData> {
   if (!token) {
     return {
       token,
@@ -42,7 +48,7 @@ export const load: PageLoad = async ({ url, fetch }) => {
         method: 'POST',
         body: JSON.stringify({ token })
       },
-      fetch
+      fetcher
     );
 
     if (!payload?.status) {
@@ -74,4 +80,11 @@ export const load: PageLoad = async ({ url, fetch }) => {
       demoTokens: DEMO_TOKENS
     } satisfies AccessPageData;
   }
+}
+
+export const load: PageLoad = async ({ params, url, fetch }) => {
+  const token =
+    normalizeToken(params.token) ?? normalizeToken(url.searchParams.get('token'));
+
+  return resolveAccessPage(token, fetch);
 };
