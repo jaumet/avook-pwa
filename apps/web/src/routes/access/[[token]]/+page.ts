@@ -27,7 +27,7 @@ function normalizeToken(rawToken: string | null | undefined): string | null {
   return token ? token : null;
 }
 
-export async function resolveAccessPage(
+async function resolveAccessPage(
   token: string | null,
   fetcher: typeof fetch
 ): Promise<AccessPageData> {
