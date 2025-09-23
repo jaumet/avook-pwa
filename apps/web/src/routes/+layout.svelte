@@ -3,7 +3,7 @@
   import { setupI18n } from '$lib/i18n';
 
   onMount(() => {
-    setupI18n();
+    void setupI18n();
   });
 </script>
 
