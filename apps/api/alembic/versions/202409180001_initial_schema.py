@@ -15,9 +15,20 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
-qr_status_enum = postgresql.ENUM("new", "active", "blocked", name="qr_status")
+qr_status_enum = postgresql.ENUM(
+    "new",
+    "active",
+    "blocked",
+    name="qr_status",
+    create_type=False,
+)
 account_provider_enum = postgresql.ENUM(
-    "google", "apple", "otp", "guest", name="account_provider"
+    "google",
+    "apple",
+    "otp",
+    "guest",
+    name="account_provider",
+    create_type=False,
 )
 
 
