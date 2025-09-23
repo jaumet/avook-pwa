@@ -1,4 +1,4 @@
-import { getLocaleFromNavigator, init, register } from 'svelte-i18n';
+import { getLocaleFromNavigator, init, register, waitLocale } from 'svelte-i18n';
 
 const LOCALES = ['en', 'es', 'ca'] as const;
 const TRANSLATION_BASE_PATH = '/locales';
@@ -9,9 +9,21 @@ type SupportedLocale = (typeof LOCALES)[number];
 
 type LoaderResponse = Record<string, unknown>;
 
+type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
+let loaderFetch: Fetcher | null = typeof fetch === 'function' ? fetch : null;
+
+function requireFetch(): Fetcher {
+  if (!loaderFetch) {
+    throw new Error('No fetch implementation available for loading translations');
+  }
+
+  return loaderFetch;
+}
+
 function createLoader(locale: SupportedLocale) {
   return async (): Promise<LoaderResponse> => {
-    const response = await fetch(
+    const response = await requireFetch()(
       `${TRANSLATION_BASE_PATH}/${locale}/${TRANSLATION_FILENAME}`
     );
 
@@ -27,15 +39,26 @@ for (const locale of LOCALES) {
   register(locale, createLoader(locale));
 }
 
-export function setupI18n(initialLocale?: string): void {
+export interface I18nSetupOptions {
+  initialLocale?: string;
+  fetcher?: Fetcher;
+}
+
+export async function setupI18n(options: I18nSetupOptions = {}): Promise<void> {
+  if (options.fetcher) {
+    loaderFetch = options.fetcher;
+  }
+
   const resolvedLocale =
-    initialLocale ??
+    options.initialLocale ??
     (typeof navigator !== 'undefined' ? getLocaleFromNavigator() ?? FALLBACK_LOCALE : FALLBACK_LOCALE);
 
   init({
     fallbackLocale: FALLBACK_LOCALE,
     initialLocale: resolvedLocale
   });
+
+  await waitLocale();
 }
 
 export { LOCALES as SUPPORTED_LOCALES };
