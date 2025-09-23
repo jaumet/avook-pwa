@@ -13,6 +13,8 @@ from alembic.script import ScriptDirectory
 from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
 
+from app.models import metadata as model_metadata
+
 from .database import get_engine
 
 logger = logging.getLogger("app.migrations")
@@ -49,18 +51,23 @@ def _database_at_head(engine: Engine, script: ScriptDirectory) -> bool:
     return current_revision == head_revision
 
 
+EXPECTED_TABLES = set(model_metadata.tables.keys())
+
+
 def _needs_stamp(engine: Engine) -> bool:
     """Return True when the schema exists but Alembic hasn't recorded a revision."""
 
     inspector = inspect(engine)
+    if inspector.has_table("alembic_version"):
+        return False
+
     table_names = set(inspector.get_table_names())
 
     # If the target schema already exists (likely from a previous manual migration
     # run) but the Alembic version table is missing, we can stamp the database at
     # head instead of trying to apply migrations that would re-create the objects
     # and fail with DuplicateObject errors.
-    expected_tables = {"qr_code", "qr_batch", "qr_audit"}
-    return expected_tables.issubset(table_names)
+    return EXPECTED_TABLES.issubset(table_names)
 
 
 def run_migrations() -> None:
