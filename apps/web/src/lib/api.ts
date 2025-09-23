@@ -49,11 +49,11 @@ export async function apiFetch<T>(
   init: RequestInit = {},
   fetcher: typeof fetch = fetch
 ): Promise<T> {
-  const endpointPath = endpoint.replace(/^\/+/, '');
-  const requestUrl =
-    API_BASE.startsWith('http://') || API_BASE.startsWith('https://')
-      ? new URL(endpointPath, API_BASE).toString()
-      : `${API_BASE}${endpointPath}`;
+  const trimmedEndpoint = endpoint.trim();
+  const isAbsolute = /^https?:\/\//i.test(trimmedEndpoint);
+  const endpointPath = isAbsolute ? trimmedEndpoint : trimmedEndpoint.replace(/^\/+/, '');
+  const normalizedBase = API_BASE.endsWith('/') ? API_BASE : `${API_BASE}/`;
+  const requestUrl = isAbsolute ? endpointPath : `${normalizedBase}${endpointPath}`;
 
   const response = await fetcher(requestUrl, {
     credentials: 'include',

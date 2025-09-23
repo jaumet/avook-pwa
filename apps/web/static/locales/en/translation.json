@@ -8,7 +8,7 @@
     "token_invalid": "We could not find a QR code with that token. Please check it and try again.",
     "token_error": "We could not validate your token right now. Try again in a moment.",
     "demo_tokens_title": "Demo tokens",
-    "demo_tokens_description": "Use one of these seeded tokens when testing locally.",
+    "demo_tokens_description": "Use one of these seeded tokens when testing locally, then click to open its access page.",
     "product": "Product #{id}",
     "preview": "Preview access",
     "available": "Available",
