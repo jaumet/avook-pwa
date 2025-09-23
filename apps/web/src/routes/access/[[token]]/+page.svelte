@@ -30,7 +30,11 @@
       <p>{$t('access.demo_tokens_description')}</p>
       <ul>
         {#each data.demoTokens as token}
-          <li><code>{token}</code></li>
+          <li>
+            <a class="demo__link" href={`/access/${token}`}>
+              <code>{token}</code>
+            </a>
+          </li>
         {/each}
       </ul>
     </div>
@@ -152,6 +156,10 @@
     list-style: none;
   }
 
+  .demo__link {
+    text-decoration: none;
+  }
+
   .demo code {
     background: #0f172a;
     color: #f8fafc;
@@ -159,6 +167,13 @@
     border-radius: 0.5rem;
     font-size: 0.95rem;
     display: inline-block;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .demo__link:focus code,
+  .demo__link:hover code {
+    background: #1e293b;
+    transform: translateY(-1px);
   }
 
   .product {
