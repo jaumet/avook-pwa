@@ -10,8 +10,8 @@ from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
-from sqlalchemy import inspect
-from sqlalchemy.engine import Engine
+from sqlalchemy import inspect, text
+from sqlalchemy.engine import Connection, Engine
 
 from app.models import metadata as model_metadata
 
@@ -70,6 +70,42 @@ def _needs_stamp(engine: Engine) -> bool:
     return EXPECTED_TABLES.issubset(table_names)
 
 
+def _normalize_qr_status_enum(connection: Connection) -> None:
+    """Ensure the qr_status enum uses lowercase labels."""
+
+    if connection.dialect.name != "postgresql":
+        return
+
+    check_label = text(
+        """
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_enum e ON t.oid = e.enumtypid
+        WHERE t.typname = 'qr_status'
+          AND e.enumlabel = :label
+        LIMIT 1
+        """
+    )
+    rename_label = text(
+        "ALTER TYPE qr_status RENAME VALUE :old_label TO :new_label"
+    )
+
+    for upper_label, lower_label in (
+        ("NEW", "new"),
+        ("ACTIVE", "active"),
+        ("BLOCKED", "blocked"),
+    ):
+        if upper_label == lower_label:
+            continue
+
+        result = connection.execute(check_label, {"label": upper_label}).scalar()
+        if result:
+            connection.execute(
+                rename_label,
+                {"old_label": upper_label, "new_label": lower_label},
+            )
+
+
 def run_migrations() -> None:
     """Apply pending Alembic migrations if the target database requires them."""
 
@@ -103,6 +139,7 @@ def run_migrations() -> None:
                 "Database schema detected without Alembic version; stamping to head"
             )
             with engine.begin() as connection:
+                _normalize_qr_status_enum(connection)
                 config.attributes["connection"] = connection
                 command.stamp(config, script.get_current_head())
             config.attributes.pop("connection", None)
@@ -111,6 +148,7 @@ def run_migrations() -> None:
 
         try:
             with engine.begin() as connection:
+                _normalize_qr_status_enum(connection)
                 config.attributes["connection"] = connection
                 command.upgrade(config, "head")
         finally:
