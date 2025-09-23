@@ -7,6 +7,11 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173
   },
+  resolve: {
+    alias: {
+      deepmerge: 'deepmerge/dist/esm.js'
+    }
+  },
   optimizeDeps: {
     exclude: ['svelte-i18n', 'intl-messageformat', 'deepmerge']
   }
