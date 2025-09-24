@@ -16,11 +16,12 @@ from sqlmodel import Session, select
 
 from app.core.database import get_session
 from app.core.rate_limit import DEFAULT_ACCESS_RULE, RateLimitExceeded, RateLimiter
+from app.core.redis import get_redis_client
 from app.models import Device, QrBinding, QrCode, QrStatus
 
 logger = logging.getLogger("app.access")
 
-rate_limiter = RateLimiter()
+rate_limiter = RateLimiter(redis_client=get_redis_client())
 
 
 def _hash_identifier(value: str) -> str:
