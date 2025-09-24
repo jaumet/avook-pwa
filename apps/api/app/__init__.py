@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .api import access, auth, play, preview, shop
 from .core.config import get_settings
+from .core.migrations import run_migrations
 
 
 API_PREFIX = "/api"
@@ -22,6 +23,8 @@ def create_app() -> FastAPI:
         version="0.1.0",
         debug=settings.debug,
     )
+
+    run_migrations()
 
     app.add_middleware(
         CORSMiddleware,
