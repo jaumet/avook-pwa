@@ -1,5 +1,5 @@
 <script lang="ts">
-  import AccessPage from './AccessPage.svelte';
+  import AccessPage from '../AccessPage.svelte';
 
   type PageData = import('./$types').PageData;
 

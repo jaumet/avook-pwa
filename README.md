@@ -94,9 +94,10 @@ use while testing locally:
 - `DEMO-BETA`
 - `DEMO-GAMMA`
 
-Visit `http://localhost:8080/access?token=DEMO-ALPHA` to exercise the validation
-flow from the PWA. If you omit the token or provide an unknown one, the interface
-will now explain the issue instead of failing with a server error.
+Visit `http://localhost:8080/access/DEMO-ALPHA` (or append `?token=DEMO-ALPHA` to
+`/access`) to exercise the validation flow from the PWA. If you omit the token or
+provide an unknown one, the interface will now explain the issue instead of
+failing with a server error.
 
 Both applications currently expose minimal placeholder features but share the final
 project layout so that subsequent work can focus on business logic and UI.
