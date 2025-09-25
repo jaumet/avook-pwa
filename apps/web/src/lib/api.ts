@@ -42,24 +42,10 @@ function normalizeServerBase(rawBase: string | undefined): string {
 const RAW_BASE = import.meta.env.VITE_API_BASE as string | undefined;
 const SERVER_API_BASE = normalizeServerBase(RAW_BASE);
 
-function resolveBrowserBase(): string {
-  if (!browser) {
-    return SERVER_API_BASE;
-  }
-
-  // When the configured base is absolute we reuse it in the browser so local
-  // development (where Vite runs on port 5173) can still reach the API
-  // container running on a different host/port. Deployments that rely on an
-  // ingress proxy can continue to omit ``VITE_API_BASE`` to fall back to the
-  // relative ``/api`` prefix.
-  if (/^https?:\/\//i.test(SERVER_API_BASE)) {
-    return SERVER_API_BASE;
-  }
-
-  return API_PATH_PREFIX;
-}
-
-const API_BASE = resolveBrowserBase();
+// Browser requests should stay on the same-origin `/api` prefix so they can be
+// proxied through Vite/Nginx, while server-side code can still rely on the
+// absolute base (if provided) to reach the API container directly.
+const API_BASE = browser ? API_PATH_PREFIX : SERVER_API_BASE;
 
 export async function apiFetch<T>(
   endpoint: string,
