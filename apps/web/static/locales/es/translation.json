@@ -8,7 +8,7 @@
     "token_invalid": "No encontramos ningún código QR con ese token. Revísalo e inténtalo de nuevo.",
     "token_error": "Ahora mismo no podemos validar el token. Prueba de nuevo en unos segundos.",
     "demo_tokens_title": "Tokens de prueba",
-    "demo_tokens_description": "Utiliza uno de estos tokens precargados cuando hagas pruebas locales.",
+    "demo_tokens_description": "Utiliza uno de estos tokens precargados cuando hagas pruebas locales y haz clic para abrir su página de acceso.",
     "product": "Producto #{id}",
     "preview": "Acceso al sampler",
     "available": "Disponible",
