@@ -25,9 +25,21 @@
   },
   "player": {
     "title": "Reproductor de Audiovook",
-    "description": "La interfaz completa del reproductor llegará muy pronto.",
+    "description": "Explora los controles de reproducción de Audiovook con nuestra lista de demostración.",
     "play": "Reproducir",
-    "pause": "Pausa"
+    "pause": "Pausa",
+    "now_playing": "Reproduciendo",
+    "duration": "Transcurrido {elapsed} • Restante {remaining} • Total {total}",
+    "previous_track": "Reproducir pista anterior",
+    "next_track": "Reproducir pista siguiente",
+    "seek_label": "Buscar dentro de la pista actual",
+    "track_list": "Lista de demostración",
+    "select_track": "Reproducir {title}",
+    "tracks": {
+      "intro": "Narración inicial",
+      "chapter": "Avance del capítulo",
+      "outro": "Créditos finales"
+    }
   },
   "error": {
     "title": "Algo ha ido mal",

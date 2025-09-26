@@ -25,9 +25,21 @@
   },
   "player": {
     "title": "Audiovook Player",
-    "description": "The full-featured player interface is coming soon.",
+    "description": "Explore the Audiovook playback controls with our demo playlist.",
     "play": "Play",
-    "pause": "Pause"
+    "pause": "Pause",
+    "now_playing": "Now playing",
+    "duration": "Elapsed {elapsed} • Remaining {remaining} • Total {total}",
+    "previous_track": "Play previous track",
+    "next_track": "Play next track",
+    "seek_label": "Seek through the current track",
+    "track_list": "Demo playlist",
+    "select_track": "Play {title}",
+    "tracks": {
+      "intro": "Intro narration",
+      "chapter": "Chapter preview",
+      "outro": "Closing credits"
+    }
   },
   "error": {
     "title": "Something went wrong",

@@ -50,3 +50,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# Binary assets
+apps/web/static/audio/
+*.wav
