@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
+import logging
+
+import pytest
+
 from fastapi.testclient import TestClient
 
 
@@ -46,3 +51,20 @@ def test_blocked_token_disables_preview(client: TestClient) -> None:
     assert payload["status"] == "blocked"
     assert payload["preview_available"] is False
     assert payload["can_reregister"] is False
+
+
+def test_validate_logs_structured_event(
+    client: TestClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Validation events are logged with hashed identifiers."""
+
+    caplog.set_level(logging.INFO, logger="app.access")
+
+    token = "DEMO-NEW"
+    hashed = hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+    payload = _post_validate(client, token)
+    assert payload["status"] == "new"
+
+    assert hashed in caplog.text
+    assert token not in caplog.text

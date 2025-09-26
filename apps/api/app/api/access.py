@@ -103,6 +103,34 @@ class AccessValidateResponse(BaseModel):
     token: str
 
 
+def _log_validation_result(
+    request: Request,
+    token: str,
+    device_id: Optional[uuid.UUID],
+    response: AccessValidateResponse,
+) -> None:
+    """Emit a structured log entry that captures the validation outcome."""
+
+    extra: dict[str, Any] = {
+        "can_reregister": response.can_reregister,
+        "preview_available": response.preview_available,
+    }
+
+    if response.cooldown_until is not None:
+        extra["cooldown_until"] = response.cooldown_until.isoformat()
+
+    if response.product is not None:
+        extra["product_id"] = response.product.id
+
+    _log_event(
+        request,
+        f"access.validate.{response.status}",
+        token,
+        device_id,
+        **extra,
+    )
+
+
 def _build_product_payload(qr: QrCode) -> Optional[ProductInfo]:
     if qr.product_id is None:
         return None
@@ -137,13 +165,14 @@ def _build_validation_payload(qr_code: QrCode) -> AccessValidateResponse:
 @router.post("/validate", response_model=AccessValidateResponse)
 def validate_access(
     payload: AccessValidateRequest,
+    request: Request,
     session: Session = Depends(get_session),
 ) -> AccessValidateResponse:
     """Validate a QR token and return its access status."""
 
     token = payload.token.strip()
     if not token:
-        return AccessValidateResponse(
+        response = AccessValidateResponse(
             status="invalid",
             can_reregister=False,
             preview_available=False,
@@ -151,12 +180,14 @@ def validate_access(
             product=None,
             token=payload.token,
         )
+        _log_validation_result(request, payload.token, payload.device_id, response)
+        return response
 
     query = select(QrCode).where(QrCode.token == token)
     qr_code = session.exec(query).first()
 
     if qr_code is None:
-        return AccessValidateResponse(
+        response = AccessValidateResponse(
             status="invalid",
             can_reregister=False,
             preview_available=False,
@@ -164,8 +195,12 @@ def validate_access(
             product=None,
             token=token,
         )
+        _log_validation_result(request, token, payload.device_id, response)
+        return response
 
-    return _build_validation_payload(qr_code)
+    response = _build_validation_payload(qr_code)
+    _log_validation_result(request, token, payload.device_id, response)
+    return response
 
 
 class AccessRegisterRequest(BaseModel):

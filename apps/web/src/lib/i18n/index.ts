@@ -13,6 +13,30 @@ type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Respons
 
 let loaderFetch: Fetcher | null = typeof fetch === 'function' ? fetch : null;
 
+function isSupportedLocale(locale: string): locale is SupportedLocale {
+  return LOCALES.includes(locale as SupportedLocale);
+}
+
+function coerceLocale(locale: string | null | undefined): SupportedLocale {
+  if (!locale) {
+    return FALLBACK_LOCALE;
+  }
+
+  const normalized = locale.trim().toLowerCase().replace('_', '-');
+
+  if (isSupportedLocale(normalized)) {
+    return normalized;
+  }
+
+  const base = normalized.split('-')[0];
+
+  if (isSupportedLocale(base)) {
+    return base;
+  }
+
+  return FALLBACK_LOCALE;
+}
+
 function requireFetch(): Fetcher {
   if (!loaderFetch) {
     throw new Error('No fetch implementation available for loading translations');
@@ -49,9 +73,11 @@ export async function setupI18n(options: I18nSetupOptions = {}): Promise<void> {
     loaderFetch = options.fetcher;
   }
 
-  const resolvedLocale =
-    options.initialLocale ??
-    (typeof navigator !== 'undefined' ? getLocaleFromNavigator() ?? FALLBACK_LOCALE : FALLBACK_LOCALE);
+  const resolvedLocale = options.initialLocale
+    ? coerceLocale(options.initialLocale)
+    : typeof navigator !== 'undefined'
+      ? coerceLocale(getLocaleFromNavigator())
+      : FALLBACK_LOCALE;
 
   init({
     fallbackLocale: FALLBACK_LOCALE,
