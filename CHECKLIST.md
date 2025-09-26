@@ -133,20 +133,22 @@ _Notes:_
   - _Notes:_ QR tokens are now validated against the seeded database and return guidance for the SvelteKit access flow.
   - **Req**: `{ "token": "abc", "device_id": "uuid" }`
   - **Res**: `{ "status": "new|registered|invalid|blocked", "can_reregister": true, "cooldown_until": "ISO", "preview_available": true, "product": {"id":1,"title":"…"} }`
-- [ ] `POST /api/access/register` (primer vincle)
-  - **Req**: `{ "token": "abc", "device_id": "uuid", "account_id": "uuid|null" }`
-- [ ] `POST /api/access/reregister` (moure binding a nou device)
-  - **Req**: `{ "token": "abc", "new_device_id": "uuid" }`
-- [ ] **Rate limits** Redis: `/api/access/*` → 30 req/min per IP
+- [x] `POST /api/access/register` (primer vincle)
+  - Gestiona idempotència pel mateix `device_id` i actualitza `account_id` en reintents.
+- [x] `POST /api/access/reregister` (moure binding a nou device)
+  - Mou el binding actiu, reaprofita el compte existent i registra cooldown quan toca.
+- [x] **Rate limits** Redis: `/api/access/*` → 30 req/min per IP
 - [ ] **Polítiques**:
   - [ ] **Sessió concurrent única** per `qr_id` (expulsa antigues al `play-auth`)
-  - [ ] **Quota dispositius** per `qr` (p. ex. 3)
-  - [ ] **Cooldown** 48 h si >3 re-registres en 24 h
-- [ ] **Logs estructurats**: `request_id`, `token_hash`, `device_id`, `ip_hash`, `event_type`
+  - [x] **Quota dispositius** per `qr` (p. ex. 3)
+  - [x] **Cooldown** 48 h si >3 re-registres en 24 h
+- [x] **Logs estructurats**: `request_id`, `token_hash`, `device_id`, `ip_hash`, `event_type`
+- [ ] **Operacions background**: netejar `cooldown_until` i alertar sobre tokens bloquejats >48 h.
 
 - **Criteris d’acceptació**:
-  - [ ] Tests unit/integ: nous, registrats, invalids, cooldown i rate-limit
-  - [ ] Logs JSON amb camps requerits
+  - [x] Tests unit/integ: nous, registrats, invalids, cooldown i rate-limit
+  - [x] Logs JSON amb camps requerits
+  - [ ] Alertes/monitoratge per volum d'errors (`access.*.blocked`, `access.*.cooldown`)
 
 ---
 
