@@ -103,6 +103,34 @@ class AccessValidateResponse(BaseModel):
     token: str
 
 
+def _log_validation_result(
+    request: Request,
+    token: str,
+    device_id: Optional[uuid.UUID],
+    response: AccessValidateResponse,
+) -> None:
+    """Emit a structured log entry that captures the validation outcome."""
+
+    extra: dict[str, Any] = {
+        "can_reregister": response.can_reregister,
+        "preview_available": response.preview_available,
+    }
+
+    if response.cooldown_until is not None:
+        extra["cooldown_until"] = response.cooldown_until.isoformat()
+
+    if response.product is not None:
+        extra["product_id"] = response.product.id
+
+    _log_event(
+        request,
+        f"access.validate.{response.status}",
+        token,
+        device_id,
+        **extra,
+    )
+
+
 def _build_product_payload(qr: QrCode) -> Optional[ProductInfo]:
     if qr.product_id is None:
         return None
@@ -137,13 +165,14 @@ def _build_validation_payload(qr_code: QrCode) -> AccessValidateResponse:
 @router.post("/validate", response_model=AccessValidateResponse)
 def validate_access(
     payload: AccessValidateRequest,
+    request: Request,
     session: Session = Depends(get_session),
 ) -> AccessValidateResponse:
     """Validate a QR token and return its access status."""
 
     token = payload.token.strip()
     if not token:
-        return AccessValidateResponse(
+        response = AccessValidateResponse(
             status="invalid",
             can_reregister=False,
             preview_available=False,
@@ -151,12 +180,14 @@ def validate_access(
             product=None,
             token=payload.token,
         )
+        _log_validation_result(request, payload.token, payload.device_id, response)
+        return response
 
     query = select(QrCode).where(QrCode.token == token)
     qr_code = session.exec(query).first()
 
     if qr_code is None:
-        return AccessValidateResponse(
+        response = AccessValidateResponse(
             status="invalid",
             can_reregister=False,
             preview_available=False,
@@ -164,8 +195,12 @@ def validate_access(
             product=None,
             token=token,
         )
+        _log_validation_result(request, token, payload.device_id, response)
+        return response
 
-    return _build_validation_payload(qr_code)
+    response = _build_validation_payload(qr_code)
+    _log_validation_result(request, token, payload.device_id, response)
+    return response
 
 
 class AccessRegisterRequest(BaseModel):
@@ -362,16 +397,29 @@ def reregister_access(
             detail="No active registration to move",
         )
 
+    target_account_id = payload.account_id or active_binding.account_id
+
     if active_binding.device_id == payload.new_device_id:
+        ua_hash = _hash_identifier(request.headers.get("User-Agent", "unknown"))
+        _ensure_device(session, payload.new_device_id, ua_hash, target_account_id)
+
         if (
-            payload.account_id is not None
-            and active_binding.account_id != payload.account_id
+            target_account_id is not None
+            and active_binding.account_id != target_account_id
         ):
-            active_binding.account_id = payload.account_id
+            active_binding.account_id = target_account_id
             session.add(active_binding)
-            session.commit()
-            session.refresh(qr_code)
-        _log_event(request, "access.reregister.idempotent", token, payload.new_device_id)
+
+        session.commit()
+        session.refresh(qr_code)
+
+        _log_event(
+            request,
+            "access.reregister.idempotent",
+            token,
+            payload.new_device_id,
+            account_id=str(target_account_id) if target_account_id else None,
+        )
         return _build_validation_payload(qr_code)
 
     total_bindings = _count_total_bindings(session, qr_code.id)
@@ -395,12 +443,12 @@ def reregister_access(
     session.add(active_binding)
 
     ua_hash = _hash_identifier(request.headers.get("User-Agent", "unknown"))
-    _ensure_device(session, payload.new_device_id, ua_hash, payload.account_id)
+    _ensure_device(session, payload.new_device_id, ua_hash, target_account_id)
 
     new_binding = QrBinding(
         qr_id=qr_code.id,
         device_id=payload.new_device_id,
-        account_id=payload.account_id,
+        account_id=target_account_id,
         active=True,
     )
     session.add(new_binding)
@@ -421,7 +469,7 @@ def reregister_access(
         "access.reregister.success",
         token,
         payload.new_device_id,
-        account_id=str(payload.account_id) if payload.account_id else None,
+        account_id=str(target_account_id) if target_account_id else None,
         recent_reactivations=recent_reactivations,
     )
 
