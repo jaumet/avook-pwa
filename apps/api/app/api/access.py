@@ -397,16 +397,29 @@ def reregister_access(
             detail="No active registration to move",
         )
 
+    target_account_id = payload.account_id or active_binding.account_id
+
     if active_binding.device_id == payload.new_device_id:
+        ua_hash = _hash_identifier(request.headers.get("User-Agent", "unknown"))
+        _ensure_device(session, payload.new_device_id, ua_hash, target_account_id)
+
         if (
-            payload.account_id is not None
-            and active_binding.account_id != payload.account_id
+            target_account_id is not None
+            and active_binding.account_id != target_account_id
         ):
-            active_binding.account_id = payload.account_id
+            active_binding.account_id = target_account_id
             session.add(active_binding)
-            session.commit()
-            session.refresh(qr_code)
-        _log_event(request, "access.reregister.idempotent", token, payload.new_device_id)
+
+        session.commit()
+        session.refresh(qr_code)
+
+        _log_event(
+            request,
+            "access.reregister.idempotent",
+            token,
+            payload.new_device_id,
+            account_id=str(target_account_id) if target_account_id else None,
+        )
         return _build_validation_payload(qr_code)
 
     total_bindings = _count_total_bindings(session, qr_code.id)
@@ -430,12 +443,12 @@ def reregister_access(
     session.add(active_binding)
 
     ua_hash = _hash_identifier(request.headers.get("User-Agent", "unknown"))
-    _ensure_device(session, payload.new_device_id, ua_hash, payload.account_id)
+    _ensure_device(session, payload.new_device_id, ua_hash, target_account_id)
 
     new_binding = QrBinding(
         qr_id=qr_code.id,
         device_id=payload.new_device_id,
-        account_id=payload.account_id,
+        account_id=target_account_id,
         active=True,
     )
     session.add(new_binding)
@@ -456,7 +469,7 @@ def reregister_access(
         "access.reregister.success",
         token,
         payload.new_device_id,
-        account_id=str(payload.account_id) if payload.account_id else None,
+        account_id=str(target_account_id) if target_account_id else None,
         recent_reactivations=recent_reactivations,
     )
 
