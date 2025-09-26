@@ -25,9 +25,21 @@
   },
   "player": {
     "title": "Reproductor d'Audiovook",
-    "description": "La interfície completa del reproductor arribarà ben aviat.",
+    "description": "Explora els controls de reproducció d'Audiovook amb la nostra llista de demostració.",
     "play": "Reprodueix",
-    "pause": "Pausa"
+    "pause": "Pausa",
+    "now_playing": "Reproduint",
+    "duration": "Transcorregut {elapsed} • Restant {remaining} • Total {total}",
+    "previous_track": "Reprodueix la pista anterior",
+    "next_track": "Reprodueix la pista següent",
+    "seek_label": "Desplaça't per la pista actual",
+    "track_list": "Llista de demostració",
+    "select_track": "Reprodueix {title}",
+    "tracks": {
+      "intro": "Narració inicial",
+      "chapter": "Avanç del capítol",
+      "outro": "Crèdits finals"
+    }
   },
   "error": {
     "title": "Alguna cosa ha fallat",
