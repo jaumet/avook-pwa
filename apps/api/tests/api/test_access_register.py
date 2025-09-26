@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app.core.database import get_engine
-from app.models import QrBinding, QrCode, QrStatus
+from app.models import Device, QrBinding, QrCode, QrStatus
 
 
 def _get_session() -> Session:
@@ -118,6 +118,46 @@ def test_reregister_moves_binding_to_new_device(client: TestClient) -> None:
         assert active_binding.device_id == device_b
         assert inactive_binding.device_id == device_a
         assert inactive_binding.revoked_at is not None
+
+
+def test_reregister_reuses_existing_account_when_not_provided(
+    client: TestClient,
+) -> None:
+    token = "DEMO-NEW"
+    account_id = uuid.uuid4()
+    device_a = uuid.uuid4()
+    device_b = uuid.uuid4()
+
+    _post_json(
+        client,
+        "/api/access/register",
+        {
+            "token": token,
+            "device_id": str(device_a),
+            "account_id": str(account_id),
+        },
+    )
+
+    status_code, _ = _post_json(
+        client,
+        "/api/access/reregister",
+        {"token": token, "new_device_id": str(device_b)},
+    )
+
+    assert status_code == 200
+
+    with _get_session() as session:
+        qr_code = session.exec(select(QrCode).where(QrCode.token == token)).one()
+
+        active_binding = session.exec(
+            select(QrBinding)
+            .where(QrBinding.qr_id == qr_code.id)
+            .where(QrBinding.active.is_(True))
+        ).one()
+        assert active_binding.account_id == account_id
+
+        device = session.exec(select(Device).where(Device.id == device_b)).one()
+        assert device.account_id == account_id
 
 
 def test_reregister_respects_max_reactivations(client: TestClient) -> None:
