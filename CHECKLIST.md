@@ -208,7 +208,8 @@ _Notes:_
 ## 8) Auth lleuger
 
 - [ ] OAuth Google/Apple (PKCE)
-- [ ] OTP magic link (email) i mode guest
+- [x] OTP magic link (email)
+- [ ] Mode guest
 - [ ] Cookies httpOnly + **JWT curt (15–30 min)** + **refresh (1–7 dies)**
 - [ ] Enllaç `account_id` ↔ `device_id` en login
 

@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     database_url: str = Field(default="postgresql+psycopg://avook:avook@db:5432/avook")
     redis_url: str = Field(default="redis://cache:6379/0")
     jwt_secret: str = Field(default="change-me")
+    access_token_ttl_minutes: int = Field(default=30)
+    magic_link_token_ttl_minutes: int = Field(default=15)
+    frontend_magic_login_url: str = Field(
+        default="https://audiovook.com/auth/magic-login",
+    )
+    stripe_api_key: str | None = Field(default=None)
+    stripe_webhook_secret: str = Field(default="")
     hmac_media_secret: str = Field(default="change-me-too")
 
 
